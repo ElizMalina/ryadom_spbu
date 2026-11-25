@@ -1,1 +1,349 @@
-.homeShell{--purple:#30265d;display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}.homeSidebar{background:var(--purple);color:white;min-height:100vh;padding:26px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}.homeBrand{padding:6px 15px 25px;display:flex;flex-direction:column;gap:5px}.homeBrand strong{font-size:18px;letter-spacing:.09em}.homeBrand small{font-size:11px;color:#d8d2ec}.homeSidebar nav{display:grid;gap:3px}.homeSidebar nav a{font-size:15px;padding:13px 15px;text-decoration:none;color:#edeaf7;border-radius:12px}.homeSidebar nav a:hover,.homeSidebar nav a:focus-visible,.homeSidebar nav a.active{background:#524382;color:#fff}.homeSidebarBottom{margin-top:auto;padding:12px 7px 0}.homeSidebarBottom .emergency{display:block;background:#fef7f7;color:#982f43;text-decoration:none;font-weight:700;text-align:center;border-radius:12px;padding:12px 8px}.homeSidebarBottom p{font-size:11px;line-height:1.4;color:#d8d2ec;margin:16px 2px 0}.homeMain{padding:28px min(5vw,55px) 70px;max-width:1450px;width:100%;min-width:0}.homeTopbar{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:26px}.homeTopbar label{flex:1;max-width:550px}.homeTopbar input{padding:13px 16px;border:1px solid #e6e3ef;border-radius:12px;width:100%;background:#fff}.homeTopbar input:disabled{opacity:.72}.homeLogin{background:#fff;padding:11px 20px;border:1px solid #e7e3f2;border-radius:12px;text-decoration:none}.homeHero{padding:50px 45px;background:linear-gradient(135deg,#eeeafa,#fdfcff);border:1px solid #e9e3f7;border-radius:26px}.homeEyebrow{text-transform:uppercase;color:#65579d;font-weight:700;letter-spacing:.08em;font-size:12px}.homeHero h1{font-size:clamp(30px,4vw,47px);margin:18px 0}.homeHero p{max-width:650px;line-height:1.65}.homeActions{display:flex;gap:12px;flex-wrap:wrap;margin-top:23px}.homeActions a{display:inline-block;background:#514280;color:white;padding:13px 20px;text-decoration:none;border-radius:12px}.homeActions a+a{background:white;color:#514280;border:1px solid #9e91c1}.homeSection{margin-top:34px}.homeSection h2{font-size:24px;margin-bottom:8px}.homeSection>p{color:#625c76}.moodChips{display:flex;flex-wrap:wrap;gap:9px;margin-top:17px}.moodChips button{border:1px solid #dfd8ef;border-radius:30px;background:white;color:#4b416c;padding:11px 16px;cursor:pointer;min-height:44px}.moodChips button[aria-pressed=true]{background:#524382;color:white}.homeNote{padding:12px 15px;background:#eeebf8;border-radius:10px}.homeGrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:19px}.homeTile{background:#fff;border:1px solid #e6e1ee;border-radius:18px;padding:23px;text-decoration:none;min-width:0;display:block}.homeTile h3{font-size:18px;margin:0 0 12px}.homeTile p{font-size:14px;line-height:1.6;color:#635d71}.homeTile span{color:#59488d;font-weight:700}.srOnly{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(max-width:900px){.homeShell{grid-template-columns:1fr}.homeSidebar{position:relative;min-height:0;height:auto}.homeSidebar nav{display:flex;overflow-x:auto;white-space:nowrap}.homeSidebarBottom p{display:none}.homeSidebarBottom{margin-top:10px}.homeMain{padding:24px}.homeGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.homeHero{padding:26px 20px}.homeGrid{grid-template-columns:1fr}.homeTopbar{flex-wrap:wrap}.homeTopbar label{min-width:0}.homeMain{padding:16px}}
+/* Оформление главной по дизайн-токенам feature/spbu-official-brand-assets.
+ * Бренд-ориентиры: https://pr.spbu.ru/design-templates
+ * Сохранено: доступное выпадающее меню и адаптивность issue #139.
+ * Open Sans загружается из Google Fonts; без сети используется Segoe UI / Arial.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap');
+.homeShell {
+  --home-sidebar: #70281f;
+  --home-hover: #863327;
+  --home-active: #9f2d20;
+  --home-accent: #9f2d20;
+  --home-accent-dark: #772016;
+  --home-accent-soft: #f8eae7;
+  --spbu-terracotta: #9f2d20;
+  --spbu-gray: #a8adb4;
+  --home-border: #d7dbe0;
+  --home-text: #282b2f;
+  --home-muted: #565e66;
+  --home-font: 'Open Sans', 'Segoe UI', Arial, sans-serif;
+
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+  color: var(--home-text);
+  background: #f7f8f9;
+  font-family: var(--home-font);
+}
+
+.homeShell,
+.homeShell *,
+.homeShell *::before,
+.homeShell *::after {
+  box-sizing: border-box;
+}
+
+.homeSidebarColumn {
+  min-width: 0;
+  min-height: 100%;
+  background: var(--home-sidebar);
+}
+
+.homeSidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 17px 18px;
+  color: #fff;
+}
+
+.homeSidebarHeader { flex-shrink: 0; }
+.homeBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 4px 10px 25px;
+  color: #fff;
+  text-decoration: none;
+}
+/* Локальный белый логотип: не деформировать и не перекрашивать. */
+.homeBrandLogo {
+  display: block;
+  flex-shrink: 0;
+  width: 75px;
+  height: auto;
+  object-fit: contain;
+}
+.homeBrandText { display: grid; gap: 3px; min-width: 0; }
+.homeBrandText strong { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.homeBrandText small { font-size: 10px; color: #f2ded8; line-height: 1.4; }
+.homeMenuButton { display: none; }
+
+.homeNavigation {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.homeNavigation a {
+  display: block;
+  min-width: 0;
+  padding: 12px 13px;
+  border-radius: 7px;
+  color: #f0e4e0;
+  font-size: 14px;
+  line-height: 1.3;
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+.homeNavigation a:hover { background: var(--home-hover); color: #fff; }
+.homeNavigation a.isActive {
+  background: var(--home-active);
+  box-shadow: inset 3px 0 #fff4ee;
+  color: #fff;
+}
+
+.homeSidebarBottom { margin-top: auto; padding: 16px 5px 0; }
+.homeEmergencyLink {
+  display: block;
+  padding: 12px 10px;
+  border-radius: 10px;
+  background: #fff7f5;
+  color: #6e211a;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 750;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+.homeDisclaimer {
+  margin: 12px 2px 0;
+  color: #e0d2ce;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.homeMain {
+  width: 100%;
+  min-width: 0;
+  max-width: 1450px;
+  padding: 28px clamp(16px, 3.5vw, 55px) 70px;
+}
+.homeTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 0;
+  margin-bottom: 26px;
+}
+.homeSearchField { flex: 1 1 200px; min-width: 0; max-width: 550px; }
+.homeSearchField input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 13px 16px;
+  border: 1px solid var(--home-border);
+  border-radius: 8px;
+  background: #fff;
+}
+.homeSearchField input:disabled { opacity: .76; }
+.homeLogin {
+  flex: 0 0 auto;
+  padding: 11px 16px;
+  border: 1px solid var(--home-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--home-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.homeHero {
+  min-width: 0;
+  padding: clamp(22px, 4vw, 50px) clamp(18px, 4vw, 45px);
+  border: 1px solid #e8d7d2;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fbefeb, #ffffff);
+}
+.homeEyebrow {
+  margin: 0;
+  color: var(--home-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .045em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+.homeHero h1 {
+  margin: 16px 0;
+  font-size: clamp(28px, 3.3vw, 47px);
+  line-height: 1.15;
+  overflow-wrap: break-word;
+}
+.homeHero > p:not(.homeEyebrow) {
+  max-width: 650px;
+  margin: 0;
+  line-height: 1.65;
+}
+.homeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 23px;
+}
+.homeActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  background: var(--home-accent);
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.homeActions a + a {
+  border: 1px solid #b9867a;
+  background: #fff;
+  color: var(--home-accent);
+}
+
+.homeSection { min-width: 0; margin-top: 34px; }
+.homeSection h2 { margin: 0 0 8px; font-size: 24px; line-height: 1.25; }
+.homeSection > p { margin: 0; color: var(--home-muted); line-height: 1.5; }
+.homeMoodChips { display: flex; flex-wrap: wrap; gap: 9px; min-width: 0; margin-top: 17px; }
+.homeMoodChips button {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--home-border);
+  border-radius: 30px;
+  background: #fff;
+  color: var(--home-text);
+  font-size: 14px;
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
+.homeMoodChips button[aria-pressed='true'] { background: var(--home-active); color: #fff; }
+.homeMoodNote:not(:empty) {
+  margin: 12px 0 0;
+  padding: 12px 15px;
+  border-radius: 10px;
+  background: var(--home-accent-soft);
+}
+.homeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  min-width: 0;
+  margin-top: 18px;
+}
+.homeTile {
+  display: block;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--home-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--home-text);
+  text-decoration: none;
+  overflow-wrap: break-word;
+}
+.homeTile h3 { margin: 0 0 12px; font-size: 18px; line-height: 1.35; }
+.homeTile p { margin: 0; color: var(--home-muted); font-size: 14px; line-height: 1.55; }
+.homeTile span { display: block; margin-top: 10px; color: var(--home-accent); font-weight: 700; }
+.homeSrOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.homeShell a:focus-visible,
+.homeShell button:focus-visible,
+.homeShell input:focus-visible {
+  outline: 3px solid #bb6b4f;
+  outline-offset: 3px;
+}
+.homeSidebar a:focus-visible,
+.homeSidebar button:focus-visible {
+  outline-color: #ffffff;
+}
+
+@media (max-width: 1130px) {
+  .homeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .homeShell { display: block; }
+  .homeSidebarColumn { min-height: 0; }
+  .homeSidebar {
+    position: static;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding: 14px 16px 16px;
+  }
+  .homeSidebarHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .homeBrand { min-width: 0; padding: 0; flex-direction: row; align-items: center; gap: 10px; }
+  .homeBrandLogo { width: 47px; height: auto; }
+  .homeBrandText strong { font-size: 15px; }
+  .homeBrandText small { display: none; }
+  .homeMenuButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid rgba(255,255,255,.42);
+    border-radius: 10px;
+    background: transparent;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .homeNavigation { display: none; margin-top: 16px; }
+  .homeNavigation[data-open='true'] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .homeNavigation a { font-size: 14px; padding: 12px; }
+  .homeSidebarBottom { margin: 12px 0 0; padding: 0; }
+  .homeEmergencyLink { min-height: 44px; }
+  .homeDisclaimer { font-size: 8px; line-height: 1.35; }
+  .homeMain { padding: 20px 16px 48px; }
+  .homeTopbar { margin-bottom: 20px; }
+  .homeHero { border-radius: 18px; }
+  .homeHero h1 { font-size: clamp(26px, 7vw, 36px); }
+  .homeGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .homeMain { padding-inline: 12px; }
+  .homeHero { padding: 24px 18px; }
+  .homeHero h1 { font-size: clamp(26px, 7.6vw, 32px); }
+  .homeTopbar { gap: 10px; }
+  .homeLogin { padding-inline: 12px; }
+  .homeActions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .homeActions a { width: 100%; }
+  .homeNavigation[data-open='true'] { grid-template-columns: minmax(0, 1fr); }
+  .homeMoodChips button { flex: 1 1 125px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homeShell *,
+  .homeShell *::before,
+  .homeShell *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
