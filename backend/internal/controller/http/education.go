@@ -3,6 +3,7 @@ package http
 import (
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gofiber/fiber/v2"
 	educationmodel "github.com/mshipilov5/Ryadom_spbu/backend/internal/controller/http/model/education"
@@ -62,7 +63,7 @@ func (r *Router) getFilterOptions(ctx *fiber.Ctx) error {
 func listOptionsFromContext(ctx *fiber.Ctx) (core.ListOptions, error) {
 	query := ctx.Context().QueryArgs()
 	search := strings.TrimSpace(string(query.Peek("q")))
-	if len(search) > 100 {
+	if utf8.RuneCountInString(search) > 100 {
 		return core.ListOptions{}, core.ValidationError{Message: "Параметр q не должен быть длиннее 100 символов"}
 	}
 

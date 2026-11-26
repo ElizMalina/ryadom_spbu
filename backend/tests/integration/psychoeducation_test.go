@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
@@ -52,17 +54,25 @@ func TestMaterialDetailDoesNotExposeUnknownField(t *testing.T) {
 	}
 }
 
-func TestMaterialsEndpointRejectsLongQuery(t *testing.T) {
+func TestMaterialsEndpointSearchLength(t *testing.T) {
 	server := newTestServer()
-	query := make([]byte, 101)
-	for index := range query {
-		query[index] = 'a'
+	tests := []struct {
+		name   string
+		query  string
+		status int
+	}{
+		{"100 Cyrillic characters", strings.Repeat("я", 100), http.StatusOK},
+		{"101 Cyrillic characters", strings.Repeat("я", 101), http.StatusBadRequest},
+		{"101 ASCII characters", strings.Repeat("a", 101), http.StatusBadRequest},
 	}
-	request := httptest.NewRequest(http.MethodGet, "/api/v1/psychoeducation/materials?q="+string(query), nil)
-	response := executeRequest(t, server, request)
-
-	if response.StatusCode != http.StatusBadRequest {
-		t.Fatalf("status = %d, want %d", response.StatusCode, http.StatusBadRequest)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, "/api/v1/psychoeducation/materials?q="+url.QueryEscape(test.query), nil)
+			response := executeRequest(t, server, request)
+			if response.StatusCode != test.status {
+				t.Fatalf("status = %d, want %d", response.StatusCode, test.status)
+			}
+		})
 	}
 }
 
