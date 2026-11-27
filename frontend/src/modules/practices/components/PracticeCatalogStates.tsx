@@ -29,7 +29,7 @@ export function PracticeCatalogError({ onRetry }: { onRetry: () => void }) {
     <div className="catalogState catalogStateError" role="alert">
       <span className="catalogStateIcon" aria-hidden="true">!</span>
       <h2>Не удалось загрузить практики</h2>
-      <p>Это тестовое состояние интерфейса. Попробуйте загрузить каталог ещё раз.</p>
+      <p>Попробуйте загрузить каталог ещё раз.</p>
       <button type="button" className="stateButton" onClick={onRetry}>Повторить</button>
     </div>
   );

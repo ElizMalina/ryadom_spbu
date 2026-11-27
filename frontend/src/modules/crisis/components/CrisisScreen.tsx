@@ -1,124 +1,108 @@
-import { CopySupportMessage } from './CopySupportMessage';
 import {
-  crisisContacts,
-  groundingSteps,
-  safetySteps,
-  supportMessage,
-} from '../mock/crisis';
+  crisis812Phone,
+  restIntro,
+  restSections,
+  roundTheClock,
+  selfHelp,
+  spbuTrustPhone,
+  yuventaAppointment,
+} from '../content';
 
 export function CrisisScreen() {
-  const emergency = crisisContacts.find((contact) => contact.isEmergency);
-  const supportContacts = crisisContacts.filter((contact) => !contact.isEmergency);
-
   return (
     <div className="crisisScreen">
       <header className="crisisIntro">
-        <p className="crisisKicker">Поддержка прямо сейчас</p>
-        <h1>Вы не обязаны оставаться с этим в одиночку</h1>
-        <p className="crisisLead">
-          Выберите самый безопасный вариант на ближайшие минуты. Платформа не является
-          экстренной службой и не заменяет профессиональную помощь.
-        </p>
+        <p className="crisisKicker">Помощь в трудной ситуации</p>
+        <h1>Кризисная поддержка</h1>
+        <p>Если есть непосредственная угроза жизни или здоровью, позвоните <a href="tel:112">112</a>.</p>
       </header>
 
-      {emergency && (
-        <section className="crisisEmergency" aria-labelledby="crisis-emergency-title">
-          <div className="crisisEmergencyIcon" aria-hidden="true">!</div>
-          <div className="crisisEmergencyContent">
-            <p className="crisisSectionLabel">Если есть непосредственная опасность</p>
-            <h2 id="crisis-emergency-title">Для жизни или здоровья — звоните 112</h2>
-            <p>
-              Позвоните сами или попросите человека рядом сделать это. По возможности
-              не оставайтесь в одиночку до получения помощи.
-            </p>
-            <a className="crisisEmergencyButton" href={emergency.href}>
-              Позвонить 112
-            </a>
-          </div>
-        </section>
-      )}
-
-      <section className="crisisSection" aria-labelledby="crisis-contacts-title">
-        <div className="crisisSectionHeading">
-          <div>
-            <p className="crisisSectionLabel">Контакты</p>
-            <h2 id="crisis-contacts-title">Куда можно обратиться</h2>
-          </div>
-          <p>Контакты кризисной помощи должны регулярно подтверждаться владельцем справочника.</p>
-        </div>
-
-        <div className="crisisContactGrid">
-          {supportContacts.map((contact) => (
-            <article key={contact.id} className="crisisContactCard">
-              <div>
-                <h3>{contact.title}</h3>
-                <p>{contact.description}</p>
+      <section className="crisisPanel crisisUrgent" aria-labelledby="crisis-urgent-title">
+        <h2 id="crisis-urgent-title">Круглосуточная поддержка</h2>
+        <p className="crisisCaption">Экстренные телефоны в Санкт-Петербурге</p>
+        <ul className="crisisPhoneList">
+          {roundTheClock.map((contact) => (
+            <li key={contact.title}>
+              <h3>{contact.title}</h3>
+              <div className="crisisPhoneNumbers">
+                {contact.phones.map((phone) => (
+                  <a key={phone.href} href={phone.href}>{phone.text}</a>
+                ))}
               </div>
-              <a className="crisisPhoneLink" href={contact.href}>{contact.phone}</a>
-              <p className="crisisHours">{contact.hours}</p>
-            </article>
+              <p>{contact.description}</p>
+              {contact.title.includes('«ЮВЕНТА»') && (
+                <p>Очная консультация: <a href={yuventaAppointment.href}>{yuventaAppointment.text}</a>.</p>
+              )}
+            </li>
           ))}
-
-          <article className="crisisContactCard crisisContactCardMuted">
-            <div>
-              <h3>Связаться со специалистом</h3>
-              <p>
-                Для неэкстренной ситуации можно перейти к выбору доступного формата помощи.
-              </p>
-            </div>
-            <a className="crisisOutlineButton" href="/appointments">
-              Перейти к вариантам помощи
-            </a>
-            <p className="crisisHours">Срок ответа должен быть указан честно на странице записи.</p>
-          </article>
-        </div>
+        </ul>
       </section>
 
-      <div className="crisisSupportGrid">
-        <section className="crisisSupportCard" aria-labelledby="crisis-safety-title">
-          <p className="crisisSectionLabel">На ближайшие минуты</p>
-          <h2 id="crisis-safety-title">Сделать ситуацию безопаснее</h2>
-          <ol className="crisisStepList">
-            {safetySteps.map((step, index) => (
-              <li key={step}>
-                <span aria-hidden="true">{index + 1}</span>
-                <p>{step}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
+      <section className="crisisPanel" aria-labelledby="crisis-spbu-title">
+        <h2 id="crisis-spbu-title">Телефон доверия Психологической клиники СПбГУ</h2>
+        <a className="crisisFeaturedPhone" href={spbuTrustPhone.href}>{spbuTrustPhone.text}</a>
+        <p><strong>По будням с 14:00 до 22:00 (мск).</strong> Бесплатный звонок из любой точки России.</p>
+        <p>Можно обратиться с вопросами о тревоге, стрессе, сложной жизненной ситуации, учёбе или отношениях.</p>
+      </section>
 
-        <section className="crisisSupportCard" aria-labelledby="crisis-grounding-title">
-          <p className="crisisSectionLabel">Короткое заземление</p>
-          <h2 id="crisis-grounding-title">Вернуться к тому, что происходит вокруг</h2>
-          <ul className="crisisGroundingList">
-            {groundingSteps.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ul>
-          <p className="crisisCardNote">Если упражнение неприятно или усиливает напряжение — прекратите.</p>
-        </section>
-      </div>
+      <section className="crisisPanel" aria-labelledby="crisis-812-title">
+        <h2 id="crisis-812-title">Кризисный центр «812»</h2>
+        <a className="crisisFeaturedPhone" href={crisis812Phone.href}>{crisis812Phone.text}</a>
+        <p><strong>С 18:00 до 02:00 (мск).</strong> Бесплатные консультации. Не круглосуточно.</p>
+      </section>
 
-      <section className="crisisMessageSection" aria-labelledby="crisis-message-title">
-        <div className="crisisSectionHeading">
-          <div>
-            <p className="crisisSectionLabel">Не оставайтесь одни</p>
-            <h2 id="crisis-message-title">Отправьте сообщение близкому человеку</h2>
+      <div className="crisisMore" aria-label="Дополнительная поддержка и материалы">
+        <details className="crisisDisclosure">
+          <summary>Записаться на консультацию в СПбГУ</summary>
+          <div className="crisisDisclosureBody">
+            <p>Консультации Психологической клиники СПбГУ для обучающихся и сотрудников:</p>
+            <ul>
+              <li><a href="https://anketa.spbu.ru/psikhologicheskaya-klinika-konsultatsiya-peterhof" target="_blank" rel="noopener noreferrer">Запись в Петергофе</a></li>
+              <li><a href="https://anketa.spbu.ru/psikhologicheskaya-klinika-konsultatsiya" target="_blank" rel="noopener noreferrer">Запись на Васильевском острове</a></li>
+            </ul>
           </div>
-          <p>Можно скопировать этот текст и отправить человеку, которому вы доверяете.</p>
-        </div>
-        <CopySupportMessage message={supportMessage} />
-      </section>
+        </details>
 
-      <aside className="crisisNotice" aria-label="Важная информация">
-        <strong>Важно</strong>
-        <p>
-          Платформа не ставит диагнозы и не заменяет экстренные службы. Если опасность
-          непосредственная, используйте 112. Не ориентируйтесь на обещание мгновенного ответа
-          от университетских служб, если оно явно не указано в актуальном расписании.
-        </p>
-      </aside>
+        <details className="crisisDisclosure">
+          <summary>«Мне только спросить» — консультация без записи</summary>
+          <div className="crisisDisclosureBody">
+            <p>Сокращённая консультация для обучающихся и сотрудников СПбГУ, если нужна встреча в кризисной ситуации или хочется понять, подходит ли формат пяти консультаций.</p>
+            <p><strong>Продолжительность — 20 минут.</strong> Это разовая консультация, не полноценная сессия и не формат регулярных встреч.</p>
+            <ul>
+              <li><strong>Петергоф:</strong> понедельник, 16:00–17:30. Ботаническая ул., д. 68 (ДКиН), каб. 101.</li>
+              <li><strong>Васильевский остров:</strong> вторник, 10:30–11:40. Менделеевская линия, д. 5, здание Института истории и Института философии СПбГУ; отдельный вход со двора, табличка «Психологический центр».</li>
+            </ul>
+          </div>
+        </details>
+
+        <details className="crisisDisclosure">
+          <summary>Первая психологическая самопомощь при остром стрессе</summary>
+          <div className="crisisDisclosureBody">
+            <p>Рекомендации при апатии, двигательном возбуждении, гневе, нервной дрожи, слезах и истерике.</p>
+            {selfHelp.map((group) => (
+              <section className="crisisAdvice" key={group.title}>
+                <h3>{group.title}</h3>
+                {group.intro.map((text) => <p key={text}>{text}</p>)}
+                <ul>{group.steps.map((step) => <li key={step}>{step}</li>)}</ul>
+              </section>
+            ))}
+          </div>
+        </details>
+
+        <details className="crisisDisclosure">
+          <summary>Как почувствовать себя по-настоящему отдохнувшим</summary>
+          <div className="crisisDisclosureBody">
+            <p>{restIntro}</p>
+            {restSections.map((section) => (
+              <section className="crisisAdvice" key={section.title}>
+                <h3>{section.title}</h3>
+                {section.text.map((text) => <p key={text}>{text}</p>)}
+                {section.steps.length > 0 && <ul>{section.steps.map((step) => <li key={step}>{step}</li>)}</ul>}
+              </section>
+            ))}
+          </div>
+        </details>
+      </div>
     </div>
   );
 }

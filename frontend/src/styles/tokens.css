@@ -1,0 +1,60 @@
+/* Единственный источник дизайн-токенов интерфейса «Рядом».
+   СПбГУ: терракотовый #9F2D20, серый #A8ADB4, PT Sans / PT Serif. */
+:root {
+  --ui-brand: #9f2d20;
+  --ui-brand-dark: #772016;
+  --ui-brand-soft: #f8eae7;
+  --ui-spbu-gray: #a8adb4;
+  --ui-sidebar: #70281f;
+  --ui-sidebar-hover: #863327;
+  --ui-sidebar-active: #9f2d20;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f3f4f6;
+  --ui-background: #f7f8f9;
+  --ui-border: #d7dbe0;
+  --ui-text: #282b2f;
+  --ui-muted: #565e66;
+  --ui-danger: #a71936;
+  --ui-danger-soft: #fff0f2;
+  --ui-warning: #7e571c;
+  --ui-warning-soft: #fcf5e9;
+  --ui-shadow: 0 3px 16px rgb(48 57 63 / 5.5%);
+  --ui-font: 'PT Sans', 'Segoe UI', Arial, sans-serif;
+  --ui-subtle-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='2' cy='2' r='0.8' fill='%23702a25' opacity='0.10'/%3E%3C/svg%3E");
+  --ui-font-reading: 'PT Serif', Georgia, 'Times New Roman', serif;
+  --ui-radius: 0px;
+  --ui-sidebar-width: 244px;
+
+  /* Backwards-compatible aliases: старые страницы берут значения из одной темы. */
+  --ryadom-bg: var(--ui-background);
+  --ryadom-surface: var(--ui-surface);
+  --ryadom-surface-soft: var(--ui-surface-soft);
+  --ryadom-sidebar: var(--ui-sidebar);
+  --ryadom-sidebar-hover: var(--ui-sidebar-hover);
+  --ryadom-sidebar-active: var(--ui-sidebar-active);
+  --ryadom-accent: var(--ui-brand);
+  --ryadom-accent-dark: var(--ui-brand-dark);
+  --ryadom-accent-soft: var(--ui-brand-soft);
+  --ryadom-text: var(--ui-text);
+  --ryadom-muted: var(--ui-muted);
+  --ryadom-border: var(--ui-border);
+  --ryadom-danger: var(--ui-danger);
+  --ryadom-danger-soft: var(--ui-danger-soft);
+  --ryadom-warning: var(--ui-warning);
+  --ryadom-warning-soft: var(--ui-warning-soft);
+  --ryadom-shadow: var(--ui-shadow);
+  --ryadom-font: var(--ui-font);
+}
+
+/* Home route aliases. Kept here so removing the old homeShell never breaks colors. */
+.route-home {
+  --home-sidebar: var(--ui-sidebar);
+  --home-hover: var(--ui-sidebar-hover);
+  --home-active: var(--ui-sidebar-active);
+  --home-accent: var(--ui-brand);
+  --home-accent-dark: var(--ui-brand-dark);
+  --home-accent-soft: var(--ui-brand-soft);
+  --home-border: var(--ui-border);
+  --home-text: var(--ui-text);
+  --home-muted: var(--ui-muted);
+}

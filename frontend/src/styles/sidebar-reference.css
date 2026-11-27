@@ -1,0 +1,147 @@
+/* SPbU reference: white outlined rectangular navigation, single shared sidebar. */
+/* Loaded after auth.css so profile and sign-in receive the same treatment. */
+.siteHeader {
+  background: #fff;
+  color: var(--ui-text, #282b2f);
+  border-right: 1px solid #d9dde1;
+}
+.siteHeader .siteHeaderInner {
+  padding: 0 0 16px;
+  scrollbar-color: #c7c9cc transparent;
+}
+.siteHeader .siteHeaderTop {
+  width: 100%;
+  padding: 24px 18px 20px;
+  background: var(--ui-sidebar, #70281f);
+}
+.siteHeader .siteBrand {
+  width: 100%;
+  padding: 0;
+  gap: 10px;
+}
+.siteHeader .siteBrandText { gap: 8px; }
+.siteHeader .siteBrandText strong { color: #fff; }
+/* The subtitle is deliberately framed, not merely a colored line of text. */
+.siteHeader .siteBrandText small {
+  display: inline-block;
+  align-self: start;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid rgb(255 255 255 / 76%);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 7%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
+/* The reference's red top rule and contiguous white bordered rows. */
+.siteHeader .siteNav {
+  margin: 18px 14px 0;
+  padding: 0;
+  gap: 0;
+  border-top: 4px solid var(--ui-brand, #9f2d20);
+}
+.siteHeader .siteNavLink {
+  display: block;
+  min-height: 47px;
+  padding: 13px 14px;
+  border: 1px solid #dfe2e5;
+  border-top: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #42474c;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: none;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.siteHeader .siteNavLink:hover {
+  color: var(--ui-brand, #9f2d20);
+  background: #fbf4f2;
+  border-color: #d8c9c6;
+}
+.siteHeader .siteNavLink.isActive {
+  padding-left: 12px;
+  border-left: 3px solid var(--ui-brand, #9f2d20);
+  background: #fff8f6;
+  color: #26282b;
+  font-weight: 700;
+  box-shadow: none;
+}
+.siteHeader .siteRoleNavigationTitle {
+  display: block;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #dfe2e5;
+  border-top: 0;
+  background: #f5f6f7;
+  color: #565e66;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.siteHeader .siteHeaderActions {
+  margin-top: auto;
+  padding: 20px 14px 0;
+  gap: 9px;
+}
+.siteHeader .siteCrisisLink,
+.siteHeader .siteLoginLink,
+.siteHeader .siteProfileButton {
+  min-height: 46px;
+  border: 1px solid #d1d5da;
+  border-radius: 0;
+  background: #fff;
+  color: #3b4045;
+  box-shadow: none;
+  text-align: center;
+}
+.siteHeader .siteCrisisLink {
+  border-color: #b33b2e;
+  color: #912c22;
+}
+.siteHeader .siteCrisisLink:hover,
+.siteHeader .siteLoginLink:hover,
+.siteHeader .siteProfileButton:hover {
+  background: #fbf4f2;
+  color: #81271f;
+}
+.siteHeader .siteProfileButton { text-align: left; }
+.siteHeader .siteAuthStatus { color: #565e66; }
+.siteHeader .siteProfileError { color: #9f2d20; }
+.siteHeader a:focus-visible,
+.siteHeader button:focus-visible {
+  outline: 2px solid var(--ui-brand, #9f2d20);
+  outline-offset: 2px;
+}
+.siteHeader .siteNavLink:focus-visible { outline-offset: -3px; }
+
+@media (max-width: 760px) {
+  .siteHeader .siteHeaderInner { padding: 0 0 12px; }
+  .siteHeader .siteHeaderTop { padding: 14px 16px; }
+  .siteHeader .siteBrand { width: auto; gap: 10px; }
+  .siteHeader .siteBrandText { gap: 5px; }
+  .siteHeader .siteBrandText small {
+    display: inline-block;
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  .siteHeader .siteMenuButton {
+    background: transparent;
+    border: 1px solid rgb(255 255 255 / 80%);
+    color: #fff;
+    border-radius: 2px;
+  }
+  .siteHeader .siteMenuButton:focus-visible { outline-color: #fff; }
+  .siteHeader .siteNav { display: none; margin: 0 14px; }
+  .siteHeader .siteNav[data-open='true'] { display: grid; grid-template-columns: minmax(0,1fr); }
+  .siteHeader .siteNavLink { min-height: 44px; padding: 11px 12px; }
+  .siteHeader .siteNavLink.isActive { padding-left: 10px; }
+  .siteHeader .siteHeaderActions { margin: 0; padding: 12px 14px 0; }
+}

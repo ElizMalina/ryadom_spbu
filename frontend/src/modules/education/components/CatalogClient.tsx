@@ -1,96 +1,29 @@
 'use client';
-
-import { useEffect, useState } from 'react';
-import { getCatalog, getFilters } from '../lib/api';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { catalogApi } from '../lib/api-client';
 import type { CatalogFilters as Filters, FilterOptions, MaterialPreview } from '../model/types';
 import { CatalogFilters } from './CatalogFilters';
 import { MaterialCard } from './MaterialCard';
 import { CatalogLoading, CatalogEmpty, CatalogError } from './CatalogStates';
-
-const initial: Filters = { q: '', category: null, tags: [], type: 'article' };
-
-type Result<T> =
-  | { status: 'loading' | 'error' }
-  | { status: 'ready'; data: T };
-
-export function CatalogClient() {
-  const [filters, setFilters] = useState(initial);
-  const [options, setOptions] = useState<Result<FilterOptions>>({ status: 'loading' });
-  const [materials, setMaterials] = useState<Result<MaterialPreview[]>>({ status: 'loading' });
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-    getFilters(signal)
-      .then((data) => {
-        if (!signal.aborted) setOptions({ status: 'ready', data });
-      })
-      .catch(() => {
-        if (!signal.aborted) setOptions({ status: 'error' });
-      });
-    return () => controller.abort();
-  }, [attempt]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const { signal } = controller;
-    const timer = window.setTimeout(() => {
-      getCatalog(filters, signal)
-        .then((data) => {
-          if (!signal.aborted) setMaterials({ status: 'ready', data });
-        })
-        .catch(() => {
-          if (!signal.aborted) setMaterials({ status: 'error' });
-        });
-    }, 250);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [filters, attempt]);
-
-  const changeFilters = (next: Filters) => {
-    if (next === filters) return;
-    setMaterials({ status: 'loading' });
-    setFilters(next);
-  };
-  const reset = () => changeFilters(initial);
-  const retry = () => {
-    setOptions({ status: 'loading' });
-    setMaterials({ status: 'loading' });
-    setAttempt((value) => value + 1);
-  };
-  const hasError = options.status === 'error' || materials.status === 'error';
-
-  return (
-    <>
-      {options.status === 'ready' && (
-        <CatalogFilters filters={filters} options={options.data} onChange={changeFilters} onReset={reset} />
-      )}
-
-      {hasError ? (
-        <CatalogError onRetry={retry} />
-      ) : options.status !== 'ready' || materials.status !== 'ready' ? (
-        <CatalogLoading />
-      ) : (
-        <>
-          <div className="catalogResultMeta" aria-live="polite">
-            {materials.data.length === 1
-              ? 'Найден 1 материал'
-              : `Найдено материалов: ${materials.data.length}`}
-          </div>
-          {materials.data.length === 0 ? (
-            <CatalogEmpty onReset={reset} />
-          ) : (
-            <div className="materialsGrid">
-              {materials.data.map((material) => (
-                <MaterialCard key={material.slug} material={material} />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-    </>
-  );
+import { Pagination, PAGE_SIZES, usePaginatedItems } from '@/modules/ui/pagination/Pagination';
+const initial:Filters={q:'',category:null,tags:[],type:'article'};
+export function CatalogClient(){
+ const params=useSearchParams();
+ const [filters,setFilters]=useState<Filters>(()=>({ ...initial,q:params.get('q')||'' }));
+ const [options,setOptions]=useState<FilterOptions>({types:['article'],categories:[],tags:[]});
+ const [items,setItems]=useState<MaterialPreview[]>([]);
+ const [status,setStatus]=useState<'loading'|'ready'|'error'>('loading');
+ const [retry,setRetry]=useState(0);
+ const paged = usePaginatedItems(items, PAGE_SIZES.catalog, JSON.stringify(filters));
+ useEffect(()=>{const controller=new AbortController();catalogApi.filters(controller.signal).then(setOptions).catch(()=>{});return()=>controller.abort()},[retry]);
+ const query=useMemo(()=>{const q=new URLSearchParams();if(filters.q.trim())q.set('q',filters.q.trim());if(filters.category)q.set('category',filters.category);if(filters.type)q.set('type',filters.type);for(const tag of filters.tags)q.append('tags',tag);return q.toString()},[filters]);
+ useEffect(()=>{const controller=new AbortController();setStatus('loading');const timer=setTimeout(()=>{
+ catalogApi.list(new URLSearchParams(query),controller.signal).then(x=>{if(!controller.signal.aborted){setItems(x.items);setStatus('ready')}}).catch(()=>{if(!controller.signal.aborted)setStatus('error')});
+ },filters.q?300:0);return()=>{clearTimeout(timer);controller.abort()}},[query,retry,filters.q]);
+ return <><CatalogFilters filters={filters} options={options} onChange={setFilters} onReset={()=>setFilters(initial)}/>
+  <div className="catalogResultMeta" aria-live="polite">{status==='ready'?`Найдено материалов: ${items.length}`:null}</div>
+  {status==='loading'?<CatalogLoading/>:status==='error'?<CatalogError onRetry={()=>setRetry(x=>x+1)}/>:items.length===0?<CatalogEmpty onReset={()=>setFilters(initial)}/>:<div className="materialsGrid">{paged.pageItems.map(x=><MaterialCard key={x.slug} material={x}/>)}</div>}
+  {status==='ready' && <Pagination {...paged} label="материалы психопросвета" onPageChange={paged.setPage} />}
+ </>;
 }

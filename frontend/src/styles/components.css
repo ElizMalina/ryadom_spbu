@@ -1,0 +1,97 @@
+/* Унифицированные визуальные примитивы (без зависимости от конкретного раздела). */
+.uiCard, .ui-card,
+.route-home .homeTile,
+.route-practices .practiceCard,
+.route-psychoeducation .materialCard,
+.route-crisis .crisisContactCard,
+.route-crisis .crisisSupportCard,
+.route-ui-states .ux-panel,
+.route-ui-states .ux-card {
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow);
+}
+.uiButton, .ui-button,
+.route-home .homeActions a:first-child,
+.route-practices .stateButton,
+.route-ui-states .ux-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid var(--ui-brand);
+  border-radius: 9px;
+  background: var(--ui-brand);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.uiButtonSecondary, .ui-button-secondary,
+.route-home .homeActions a + a {
+  background: #fff;
+  color: var(--ui-brand);
+  border: 1px solid var(--ui-brand);
+}
+.uiInput, .ui-input,
+.publicMain input:not([type='checkbox']):not([type='radio']),
+.publicMain select,
+.publicMain textarea {
+  min-width: 0;
+  max-width: 100%;
+  border-color: var(--ui-border);
+  font-family: var(--ui-font);
+}
+.publicMain { color: var(--ui-text); overflow-wrap: break-word; }
+.publicMain h1, .publicMain h2, .publicMain h3 { color: var(--ui-text); }
+.publicMain p { max-width: 100%; }
+.publicMain :is(button,a,input,textarea,select):focus-visible { outline: 3px solid #bb6b4f; outline-offset: 3px; }
+/* iOS Safari: поле менее 16px может вызвать автозум. */
+@media (max-width: 760px) {
+  .publicMain input:not([type='checkbox']):not([type='radio']),
+  .publicMain select,
+  .publicMain textarea,
+  .publicMain .searchField input,
+  .publicMain .ux-field { font-size: 16px; }
+  .publicMain :is(.practiceGrid, .materialsGrid, .crisisContactGrid, .crisisSupportGrid, .homeGrid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .publicMain :is(.practiceCard,.materialCard,.crisisContactCard,.homeTile) { min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+/* Shared catalog heading/action arrangement, reused by psychoeducation and practices. */
+.catalogTitleRow { display:flex; align-items:flex-start; justify-content:space-between; column-gap:28px; row-gap:0; min-width:0; }
+.catalogTitleRow > .catalogHero { min-width:0; flex:1 1 auto; }
+.catalogTitleRow > .authContextAction:empty { display:none; }
+.catalogTitleRow > .authContextAction { flex:0 0 auto; margin:0; padding-top:42px; justify-content:flex-end; }
+.catalogTitleRow > .authContextAction .authRoleAction { white-space:nowrap; }
+@media (max-width: 960px) {
+  .catalogTitleRow { flex-wrap:wrap; }
+  .catalogTitleRow > .authContextAction { padding-top:0; margin:0 0 24px auto; }
+  .catalogTitleRow > .catalogHero { flex-basis:100%; }
+}
+@media (max-width: 760px) {
+  .catalogTitleRow > .authContextAction { margin:0 0 18px; width:100%; }
+  .catalogTitleRow > .authContextAction .authRoleAction { width:auto; }
+}
+
+/* Shared catalog heading/action arrangement, reused by psychoeducation and practices. */
+.catalogTitleRow { display:flex; align-items:flex-start; justify-content:space-between; column-gap:28px; row-gap:0; min-width:0; }
+.catalogTitleRow > .catalogHero { min-width:0; flex:1 1 auto; }
+.catalogTitleRow > .authContextAction:empty { display:none; }
+.catalogTitleRow > .authContextAction { flex:0 0 auto; margin:0; padding-top:42px; justify-content:flex-end; }
+.catalogTitleRow > .authContextAction .authRoleAction { white-space:nowrap; }
+@media (max-width: 960px) {
+  .catalogTitleRow { flex-wrap:wrap; }
+  .catalogTitleRow > .authContextAction { padding-top:0; margin:0 0 24px auto; }
+  .catalogTitleRow > .catalogHero { flex-basis:100%; }
+}
+@media (max-width: 760px) {
+  .catalogTitleRow > .authContextAction { margin:0 0 18px; width:100%; }
+  .catalogTitleRow > .authContextAction .authRoleAction { width:auto; }
+}

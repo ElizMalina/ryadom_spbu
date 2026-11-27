@@ -1,16 +1,394 @@
-html,
-body {
+@import '../styles/pagination.css';
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&family=PT+Serif:wght@400;700&display=swap');
+/* Единый порядок подключения стилей: палитра каркас компоненты. */
+@import '../styles/tokens.css';
+@import '../styles/shell.css';
+@import '../styles/components.css';
+@import '../styles/auth.css';
+@import '../styles/events.css';
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--ui-background); color: var(--ui-text); font-family: var(--ui-font); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font: inherit; }
+
+/* BEGIN RYADOM_STABLE_SIDEBAR_AND_BUTTONS */
+/* SPbU reference: white outlined rectangular navigation, single shared sidebar. */
+/* Loaded after auth.css so profile and sign-in receive the same treatment. */
+.siteHeader {
+  background: #fff;
+  color: var(--ui-text, #282b2f);
+  border-right: 1px solid #d9dde1;
+}
+.siteHeader .siteHeaderInner {
+  padding: 0 0 16px;
+  scrollbar-color: #c7c9cc transparent;
+}
+.siteHeader .siteHeaderTop {
+  width: 100%;
+  padding: 24px 18px 20px;
+  background: var(--ui-sidebar, #70281f);
+}
+.siteHeader .siteBrand {
+  width: 100%;
+  padding: 0;
+  gap: 10px;
+}
+.siteHeader .siteBrandText { gap: 8px; }
+.siteHeader .siteBrandText strong { color: #fff; }
+/* The subtitle is deliberately framed, not merely a colored line of text. */
+.siteHeader .siteBrandText small {
+  display: inline-block;
+  align-self: start;
+  width: fit-content;
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid rgb(255 255 255 / 76%);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 7%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
+/* The reference's red top rule and contiguous white bordered rows. */
+.siteHeader .siteNav {
+  margin: 18px 14px 0;
+  padding: 0;
+  gap: 0;
+  border-top: 4px solid var(--ui-brand, #9f2d20);
+}
+.siteHeader .siteNavLink {
+  display: block;
+  min-height: 47px;
+  padding: 13px 14px;
+  border: 1px solid #dfe2e5;
+  border-top: 0;
+  border-radius: 0;
+  background: #fff;
+  color: #42474c;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  box-shadow: none;
+  text-decoration: none;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+.siteHeader .siteNavLink:hover {
+  color: var(--ui-brand, #9f2d20);
+  background: #fbf4f2;
+  border-color: #d8c9c6;
+}
+.siteHeader .siteNavLink.isActive {
+  padding-left: 12px;
+  border-left: 3px solid var(--ui-brand, #9f2d20);
+  background: #fff8f6;
+  color: #26282b;
+  font-weight: 700;
+  box-shadow: none;
+}
+.siteHeader .siteRoleNavigationTitle {
+  display: block;
   margin: 0;
-  min-height: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dfe2e5;
+  border-top: 0;
+  background: #f5f6f7;
+  color: #565e66;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.siteHeader .siteHeaderActions {
+  margin-top: auto;
+  padding: 20px 14px 0;
+  gap: 9px;
+}
+.siteHeader .siteCrisisLink,
+.siteHeader .siteLoginLink,
+.siteHeader .siteProfileButton {
+  min-height: 46px;
+  border: 1px solid #d1d5da;
+  border-radius: 0;
+  background: #fff;
+  color: #3b4045;
+  box-shadow: none;
+  text-align: center;
+}
+.siteHeader .siteCrisisLink {
+  border-color: #b33b2e;
+  color: #912c22;
+}
+.siteHeader .siteCrisisLink:hover,
+.siteHeader .siteLoginLink:hover,
+.siteHeader .siteProfileButton:hover {
+  background: #fbf4f2;
+  color: #81271f;
+}
+.siteHeader .siteProfileButton { text-align: left; }
+.siteHeader .siteAuthStatus { color: #565e66; }
+.siteHeader .siteProfileError { color: #9f2d20; }
+.siteHeader a:focus-visible,
+.siteHeader button:focus-visible {
+  outline: 2px solid var(--ui-brand, #9f2d20);
+  outline-offset: 2px;
+}
+.siteHeader .siteNavLink:focus-visible { outline-offset: -3px; }
+
+@media (max-width: 760px) {
+  .siteHeader .siteHeaderInner { padding: 0 0 12px; }
+  .siteHeader .siteHeaderTop { padding: 14px 16px; }
+  .siteHeader .siteBrand { width: auto; gap: 10px; }
+  .siteHeader .siteBrandText { gap: 5px; }
+  .siteHeader .siteBrandText small {
+    display: inline-block;
+    font-size: 9px;
+    padding: 3px 6px;
+  }
+  .siteHeader .siteMenuButton {
+    background: transparent;
+    border: 1px solid rgb(255 255 255 / 80%);
+    color: #fff;
+    border-radius: 2px;
+  }
+  .siteHeader .siteMenuButton:focus-visible { outline-color: #fff; }
+  .siteHeader .siteNav { display: none; margin: 0 14px; }
+  .siteHeader .siteNav[data-open='true'] { display: grid; grid-template-columns: minmax(0,1fr); }
+  .siteHeader .siteNavLink { min-height: 44px; padding: 11px 12px; }
+  .siteHeader .siteNavLink.isActive { padding-left: 10px; }
+  .siteHeader .siteHeaderActions { margin: 0; padding: 12px 14px 0; }
 }
 
-body {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Скругление изменяется только внутри интерфейса «Рядом», не у чужих виджетов. */
+.publicShell button,
+.publicShell input[type="button"],
+.publicShell input[type="submit"],
+.publicShell input[type="reset"],
+.publicShell [role="button"],
+.publicShell a.uiButton,
+.publicShell a.ui-button,
+.publicShell a.uiButtonSecondary,
+.publicShell a.ui-button-secondary,
+.publicShell a.authRoleAction,
+.publicShell a.siteNavLink,
+.publicShell a.siteLoginLink,
+.publicShell a.siteCrisisLink,
+.publicShell a[class*="Button"],
+.publicShell a[class*="button"],
+.publicShell a[class*="btn"],
+.ssoPage button,
+.ssoPage input[type="submit"],
+.ssoPage [role="button"] {
+  border-radius: 0 !important;
 }
+/* END RYADOM_STABLE_SIDEBAR_AND_BUTTONS */
 
-button,
-input {
-  font: inherit;
+/* BEGIN RYADOM_PT_FONTS_SQUARE_UI */
+/* PT Sans for site UI, PT Serif for reading content. */
+body, .siteHeader, .ssoPage { font-family: var(--ui-font); }
+.publicMain { font-family: var(--ui-font-reading); }
+.publicMain :is(h1,h2,h3,h4,h5,h6,button,input,select,textarea,label,
+  .homeEyebrow,.eyebrow,.staffKicker,.catalogResultMeta,.filterLabel,.filterChip,
+  .materialMeta,.tag,.ux-kicker,.ux-status,.ux-tag,.publicBreadcrumbs) {
+  font-family: var(--ui-font) !important;
 }
+/* Corner treatment is scoped to the platform, not Next.js developer overlays. */
+:where(.publicShell, .ssoPage),
+:where(.publicShell, .ssoPage) *,
+:where(.publicShell, .ssoPage) *::before,
+:where(.publicShell, .ssoPage) *::after { border-radius: 0 !important; }
+/* END RYADOM_PT_FONTS_SQUARE_UI */
+
+/* BEGIN RYADOM_UNIFIED_BUTTON_FONT */
+/* Navigation and actionable controls share the sidebar's PT Sans. */
+:where(.publicShell, .ssoPage) :is(
+  button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+  .uiButton, .uiButtonSecondary, .ui-button, .ui-button-secondary,
+  .authRoleAction, .siteNavLink, .siteCrisisLink, .siteLoginLink, .siteProfileButton,
+  .siteProfileDropdown a, .homeActions a, .homeTile, .practiceOpenLink,
+  .ux-btn-primary, .ux-btn-secondary, .crisisPrimaryAction, .primaryButton
+) { font-family: var(--ui-font) !important; }
+/* END RYADOM_UNIFIED_BUTTON_FONT */
+
+/* BEGIN RYADOM_SPBU_CREST_ONLY_20261127 */
+/* The official SPbU emblem alone (transparent, square asset). */
+.siteHeader .siteBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  width: 100%;
+  padding: 4px 10px 26px;
+}
+.siteHeader .siteBrandLogo {
+  display: block;
+  width: 90px;
+  height: 90px;
+  max-width: 100%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.siteHeader .siteBrandText {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+  background: transparent;
+  color: #fff;
+  font-family: 'PT Sans', var(--ui-font), Arial, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.27;
+  overflow-wrap: break-word;
+}
+/* Demo SSO uses the same emblem; no university wordmark. */
+.ssoBrand { justify-content: center; }
+.ssoBrand .ssoBrandLogo {
+  display: block;
+  width: 122px;
+  max-width: 30vw;
+  height: 122px;
+  object-fit: contain;
+}
+@media (max-width: 760px) {
+  .siteHeader .siteBrand {
+    flex: 1 1 auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    max-width: calc(100% - 99px);
+    padding: 0;
+  }
+  .siteHeader .siteBrandLogo { width: 56px; height: 56px; }
+  .siteHeader .siteBrandText { font-size: 18px; line-height: 1.2; }
+  .ssoBrand .ssoBrandLogo { width: 88px; height: 88px; }
+}
+/* END RYADOM_SPBU_CREST_ONLY_20261127 */
+
+/* BEGIN RYADOM_COMPACT_FLOWING_SIDEBAR */
+/* Sidebar participates in the document scroll; no independent scrollbar. */
+.siteHeader .siteHeaderInner {
+  position: static;
+  top: auto;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+  overscroll-behavior: auto;
+  padding: 0 0 20px;
+}
+.siteHeader .siteHeaderTop { padding: 16px 16px 12px; }
+.siteHeader .siteBrand {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.siteHeader .siteBrandLogo {
+  display: block;
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.siteHeader .siteBrandText {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+  font-family: var(--ui-font, 'PT Sans', sans-serif);
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.18;
+  overflow-wrap: break-word;
+}
+/* Sign-in/profile and emergency help are the first actions, before navigation. */
+.siteHeader .siteHeaderActions {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 14px 0;
+  gap: 8px;
+}
+.siteHeader .siteNav { margin: 12px 14px 0; }
+/* Profile drop-down opens downwards now that its trigger is above the links. */
+.siteHeader .siteProfileDropdown { top: calc(100% + 5px); bottom: auto; }
+@media (max-width: 760px) {
+  .siteHeader .siteHeaderTop { padding: 12px 14px; }
+  .siteHeader .siteBrand {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: calc(100% - 99px);
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+  .siteHeader .siteBrandLogo { width: 48px; height: 48px; }
+  .siteHeader .siteBrandText { font-size: 16px; line-height: 1.2; }
+  .siteHeader .siteHeaderActions { margin: 0; padding: 10px 14px 0; }
+  .siteHeader .siteNav { margin: 12px 14px 0; }
+}
+/* END RYADOM_COMPACT_FLOWING_SIDEBAR */
+
+/* RYADOM_GLOBAL_FOOTER_START */
+.ryFooter {
+  width: 100%;
+  background: #9f2d20;
+  color: #fff;
+  font-family: 'PT Sans', var(--ui-font, Arial), sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ryFooterInner {
+  width: min(100%, 1600px);
+  margin-inline: auto;
+  padding: 28px clamp(20px, 4vw, 60px) 36px;
+}
+.ryFooterTop {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.35fr) minmax(280px, 1fr) auto;
+  gap: 24px;
+  align-items: start;
+}
+.ryFooterUniversity p { margin: 0 0 10px; font-weight: 600; }
+.ryFooter a { color: #fff; text-underline-offset: 3px; }
+.ryFooter a:hover { text-decoration-thickness: 2px; }
+.ryFooter a:focus-visible { outline: 2px solid #fff; outline-offset: 4px; }
+.ryFooterSocial { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.ryFooterSocial a, .ryFooterTopLink { text-decoration: none; }
+.ryFooterTopLink { justify-self: end; white-space: nowrap; }
+.ryFooterConsents {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 22px;
+  padding-top: 17px;
+  border-top: 1px solid rgb(255 255 255 / 25%);
+}
+@media (max-width: 950px) {
+  .ryFooterTop { grid-template-columns: minmax(0, 1fr) auto; }
+  .ryFooterSocial { grid-column: 1; grid-row: 2; }
+  .ryFooterTopLink { grid-column: 2; grid-row: 1; }
+}
+@media (max-width: 540px) {
+  .ryFooterInner { padding: 22px 18px 28px; }
+  .ryFooterTop { display: flex; flex-direction: column; gap: 18px; }
+  .ryFooterSocial { gap: 8px 16px; }
+  .ryFooterTopLink { align-self: flex-start; }
+  .ryFooterConsents { margin-top: 20px; }
+}
+/* RYADOM_GLOBAL_FOOTER_END */

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { contentTypeLabels } from '../lib/contentType';
 import type { MaterialDetail } from '../model/types';
+import { generatedCoverUrl } from '../lib/generated-cover';
 import { ArticleContent } from './ArticleContent';
 
 function formatReviewedAt(value: string) {
@@ -31,27 +32,19 @@ export function ArticleView({ material }: { material: MaterialDetail }) {
         </div>
       </header>
 
+      {(material.author || material.reviewer || material.reviewedAt) && (
       <dl className="articleReviewMeta" aria-label="Редакционная информация">
-        <div>
-          <dt>Автор</dt>
-          <dd>{material.author}</dd>
-        </div>
-        <div>
-          <dt>Рецензент</dt>
-          <dd>{material.reviewer}</dd>
-        </div>
-        <div>
-          <dt>Дата пересмотра</dt>
-          <dd>{formatReviewedAt(material.reviewedAt)}</dd>
-        </div>
+        {material.author && <div><dt>Автор</dt><dd>{material.author}</dd></div>}
+        {material.reviewer && <div><dt>Рецензент</dt><dd>{material.reviewer}</dd></div>}
+        {material.reviewedAt && <div><dt>Дата пересмотра</dt><dd>{formatReviewedAt(material.reviewedAt)}</dd></div>}
       </dl>
+      )}
 
-      <div className={`articleCover ${material.imageUrl ? '' : 'isPlaceholder'}`}>
-        {material.imageUrl ? (
-          <img src={material.imageUrl} alt={`Обложка материала «${material.title}»`} />
-        ) : (
-          <div className="coverPlaceholder" role="img" aria-label="У материала нет обложки">Психопросвет</div>
-        )}
+      <div className="articleCover">
+        <img
+          src={material.imageUrl || generatedCoverUrl(material)}
+          alt={`Обложка материала «${material.title}»`}
+        />
       </div>
 
       {material.contentWarning && (

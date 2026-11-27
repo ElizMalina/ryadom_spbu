@@ -10,7 +10,7 @@ export function PracticeCard({ practice }: { practice: Practice }) {
         <div className="practiceMeta">
           <span>{practiceKindLabels[practice.kind]}</span>
           <span aria-hidden="true">·</span>
-          <span>{practice.durationMinutes} мин</span>
+          <span>{practice.durationEstimated ? '≈ ' : ''}{practice.durationMinutes} мин</span>
         </div>
         <h2>{practice.title}</h2>
         <p className="practiceSummary">{practice.summary}</p>
@@ -19,7 +19,6 @@ export function PracticeCard({ practice }: { practice: Practice }) {
         </div>
         <Link className="practiceOpenLink" href={`/practices/${practice.slug}`}>
           Открыть практику
-          <span aria-hidden="true">→</span>
         </Link>
       </div>
     </article>
