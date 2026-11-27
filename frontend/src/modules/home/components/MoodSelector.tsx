@@ -24,7 +24,7 @@ export function MoodSelector() {
       </div>
       <p className="homeMoodNote" role="status" aria-live="polite">
         {selectedMood
-          ? `Вы выбрали «${selectedMood}». Это не диагноз и никуда не отправляется.`
+          ? `Вы выбрали «${selectedMood}».`
           : ''}
       </p>
     </>

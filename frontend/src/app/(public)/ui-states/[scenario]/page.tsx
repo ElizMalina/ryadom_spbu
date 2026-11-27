@@ -16,6 +16,5 @@ export default async function Page({ params }: { params: Promise<{ scenario: str
       <span className="ux-status">{meta.status}</span>
     </div>
     <ScenarioScreen key={scenario} id={scenario} />
-    <p className="ux-demo-note">Демонстрация интерфейсного состояния. Данные и действия в каталоге моковые; реальная интеграция с API и управление правами выполняются отдельно.</p>
   </UiStatesShell>;
 }

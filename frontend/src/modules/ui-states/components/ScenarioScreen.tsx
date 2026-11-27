@@ -55,7 +55,7 @@ function FormErrorScene() {
   const [submitted, setSubmitted] = useState(false);
   const [complete, setComplete] = useState(false);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const nameValid = name.trim().length >= 2;
+  const nameValid = name.trim().length >= 1;
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => { event.preventDefault(); setSubmitted(true); if (emailValid && nameValid) setComplete(true); };
   return <Stage note="Форма на моках">
     <div className="ux-half">
@@ -69,8 +69,8 @@ function FormErrorScene() {
         </div>
         <div className="ux-form-row">
           <label className="ux-label" htmlFor="ux-name">Как к вам обращаться</label>
-          <input className="ux-field" id="ux-name" type="text" autoComplete="name" value={name} onChange={e => setName(e.target.value)} aria-invalid={submitted && !nameValid} aria-describedby={submitted && !nameValid ? 'ux-name-error' : undefined} />
-          {submitted && !nameValid && <p className="ux-hint" id="ux-name-error" role="alert">Укажите имя (не менее двух символов).</p>}
+          <input className="ux-field" id="ux-name" type="text" minLength={1} autoComplete="name" value={name} onChange={e => setName(e.target.value)} aria-invalid={submitted && !nameValid} aria-describedby={submitted && !nameValid ? 'ux-name-error' : undefined} />
+          {submitted && !nameValid && <p className="ux-hint" id="ux-name-error" role="alert">Укажите имя (не менее одного символа).</p>}
         </div>
         <button className="ux-btn ux-btn-primary" type="submit">Продолжить</button>
       </form>}
@@ -134,7 +134,6 @@ function AppointmentScene() {
     <p className="ux-body">Сейчас мы не можем получить данные из системы записи. Вы можете оставить заявку через действующую форму Психологической клиники СПбГУ.</p>
     <div className="ux-notice ux-notice-warn"><strong>Как продолжить</strong>Форма откроется на сайте СПбГУ. Доступное время и сроки ответа уточняются непосредственно в службе.</div>
     <Buttons><a className="ux-btn ux-btn-primary" href={APPOINTMENT_FORM_URL} target="_blank" rel="noopener noreferrer">Открыть форму записи СПбГУ</a><Link className="ux-btn ux-btn-plain" href="/crisis">Нужна срочная помощь</Link></Buttons>
-    <p className="ux-inline-note">Внешняя ссылка предназначена для обучающихся и сотрудников СПбГУ. Никакой заявки из этого демонстрационного экрана не отправляется.</p>
   </Stage>;
 }
 
@@ -153,7 +152,6 @@ function ExpiredContactScene() {
     </> : <>
       <p className="ux-body">Административный предпросмотр показывает только состояние справочника, не настоящие данные пользователей.</p>
       <div className="ux-admin-panel" role="status"><h3>Контакт исключён из публичной выдачи</h3><p><strong>Запись:</strong> mock-contact-01</p><p><strong>Причина:</strong> истёк срок проверки актуальности.</p><p><strong>Действие:</strong> проверить номер, часы и владельца контакта, затем повторно опубликовать.</p><p><strong>Статус:</strong> ожидает проверки ответственным.</p></div>
-      <p className="ux-inline-note">Переключатель здесь предназначен исключительно для дизайн-превью и не заменяет авторизацию или проверку роли на backend.</p>
     </>}
   </Stage>;
 }

@@ -1,0 +1,87 @@
+/* Общий каркас для всех публичных маршрутов. */
+.publicShell {
+  display: grid;
+  grid-template-columns: var(--ui-sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  min-width: 0;
+  background: var(--ui-background);
+}
+.publicMain {
+  width: 100%;
+  max-width: 1540px;
+  min-width: 0;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 28px clamp(16px, 3.5vw, 55px) 72px;
+}
+.siteHeader {
+  min-width: 0;
+  min-height: 100%;
+  background: var(--ui-sidebar);
+  color: #fff;
+}
+.siteHeaderInner {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0;
+  overflow: visible;
+}
+.siteHeaderTop { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0; }
+.siteBrand { display: flex; flex-direction: column; align-items: flex-start; gap: 11px; padding: 4px 10px 25px; color: #fff; text-decoration: none; }
+.siteBrandLogo { display: block; width: 75px; height: auto; flex-shrink: 0; object-fit: contain; }
+.siteBrandText { display: grid; gap: 3px; min-width: 0; }
+.siteBrandText strong { color: #fff; font-size: 18px; font-weight: 700; line-height: 1.2; }
+.siteBrandText small { color: #f2ded8; font-size: 10px; line-height: 1.4; }
+.siteMenuButton { display: none; }
+.siteNav { display: grid; align-content: start; gap: 6px; min-width: 0; }
+.siteNavLink { display: block; min-width: 0; padding: 13px 15px; border-radius: 10px; color: #f0e4e0; text-decoration: none; font-size: 14px; line-height: 1.3; font-weight: 600; overflow-wrap: anywhere; }
+.siteNavLink:hover { color: #fff; background: var(--ui-sidebar-hover); }
+.siteNavLink.isActive { color: #fff; background: var(--ui-sidebar-active); box-shadow: inset 3px 0 #fff4ee; }
+.siteHeaderActions { display: grid; gap: 9px; margin-top: auto; padding-top: 15px; }
+.siteCrisisLink, .siteLoginLink { display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px; border-radius: 9px; text-decoration: none; text-align: center; font-size: 12px; line-height: 1.35; font-weight: 750; overflow-wrap: anywhere; }
+.siteCrisisLink { background: #fff7f5; color: #6e211a; }
+.siteCrisisLink:hover { background: #ffebe5; }
+.siteLoginLink { color: #fff; border: 1px solid rgb(255 255 255 / 30%); background: rgb(255 255 255 / 8%); }
+.siteLoginLink:hover { background: rgb(255 255 255 / 18%); }
+.siteHeader a:focus-visible, .siteHeader button:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+.publicBreadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 0 0 16px; color: var(--ui-muted); font-size: 12px; overflow-wrap: anywhere; }
+.publicBreadcrumbs a { color: var(--ui-brand); text-decoration: none; }
+.publicBreadcrumbs a:hover { text-decoration: underline; }
+
+@media (max-width: 760px) {
+  .publicShell { display: block; }
+  .siteHeader { min-height: 0; }
+  .siteHeaderInner { position: static; height: auto; min-height: 0; overflow: visible; padding: 14px 16px 16px; }
+  .siteBrand { flex-direction: row; align-items: center; gap: 10px; padding: 0; }
+  .siteBrandLogo { width: 47px; }
+  .siteBrandText strong { font-size: 15px; }
+  .siteBrandText small { display: none; }
+  .siteMenuButton { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; min-height: 44px; padding: 10px 14px; background: transparent; color: #fff; border: 1px solid rgb(255 255 255 / 45%); border-radius: 9px; cursor: pointer; font-size: 14px; }
+  .siteNav { display: none; margin-top: 14px; }
+  .siteNav[data-open='true'] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .siteNavLink { min-height: 44px; padding: 12px; }
+  .siteHeaderActions { margin: 12px 0 0; padding: 0; }
+  .siteLoginLink { display: none; }
+  .siteCrisisLink { min-height: 44px; }
+  .publicMain { min-height: 0; padding: 20px 16px 52px; }
+}
+@media (max-width: 420px) {
+  .publicMain { padding-inline: 12px; }
+  .siteNav[data-open='true'] { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Единое оформление боковой навигации (все страницы). */
+.siteHeader { border-right: 1px solid rgb(255 255 255 / 12%); }
+.siteHeaderInner { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 24%) transparent; }
+.siteBrand { width: 100%; }
+.siteNavLink { transition: background-color 140ms ease, color 140ms ease; }
+.siteNavLink:focus-visible { outline-offset: -3px; }
+.siteHeaderActions { gap: 10px; }
+.siteCrisisLink { border: 1px solid rgb(255 255 255 / 60%); }
+@media (max-width: 760px) {
+  .siteHeaderInner { padding: 14px 16px 16px; }
+  .siteBrand { width: auto; }
+}

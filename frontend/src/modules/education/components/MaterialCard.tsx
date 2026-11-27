@@ -1,16 +1,25 @@
 import Link from 'next/link';
 import { contentTypeLabels } from '../lib/contentType';
 import type { MaterialPreview } from '../model/types';
+import { generatedCoverUrl } from '../lib/generated-cover';
+
+function formatReviewedAt(value: string) {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(new Date(value));
+}
 
 export function MaterialCard({ material }: { material: MaterialPreview }) {
   return (
     <Link className="materialCard" href={`/psychoeducation/${material.slug}`}>
-      <div className={`materialCover ${material.imageUrl ? '' : 'isPlaceholder'}`}>
-        {material.imageUrl ? (
-          <img src={material.imageUrl} alt={`Обложка материала «${material.title}»`} />
-        ) : (
-          <div className="coverPlaceholder" role="img" aria-label="У материала нет обложки">Психопросвет</div>
-        )}
+      <div className="materialCover">
+        <img
+          src={material.imageUrl || generatedCoverUrl(material)}
+          alt={`Обложка материала «${material.title}»`}
+          loading="lazy"
+        />
       </div>
 
       <div className="materialCardBody">
@@ -28,6 +37,14 @@ export function MaterialCard({ material }: { material: MaterialPreview }) {
             <span className="tag" key={tag.slug} title={tag.name}>{tag.name}</span>
           ))}
         </div>
+
+        {(material.author || material.reviewer || material.reviewedAt) && (
+        <div className="cardReviewMeta">
+          {material.author && <span>Автор: {material.author}</span>}
+          {material.reviewer && <span>Рецензент: {material.reviewer}</span>}
+          {material.reviewedAt && <span>Пересмотрено: {formatReviewedAt(material.reviewedAt)}</span>}
+        </div>
+        )}
       </div>
     </Link>
   );

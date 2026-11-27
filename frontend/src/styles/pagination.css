@@ -1,0 +1,37 @@
+/* Унифицированная постраничная навигация для каталогов и списков. */
+.uiPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 24px 0 18px;
+  color: var(--ui-text, #292b30);
+}
+.uiPaginationSummary { margin: 0; font-size: 14px; color: var(--ui-muted, #626874); }
+.uiPaginationButtons { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.uiPaginationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 42px;
+  min-height: 42px;
+  padding: 8px 12px;
+  border: 1px solid var(--ui-border, #d5d5dc);
+  border-radius: 8px;
+  background: var(--ui-surface, #fff);
+  color: var(--ui-text, #292b30);
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.uiPaginationButton:hover:not(:disabled) { border-color: var(--ui-brand, #9f2d20); color: var(--ui-brand, #9f2d20); }
+.uiPaginationButton.isCurrent { background: var(--ui-brand, #9f2d20); color: #fff; border-color: var(--ui-brand, #9f2d20); font-weight: 700; }
+.uiPaginationButton:disabled { opacity: .4; cursor: not-allowed; }
+.uiPaginationDots { min-width: 18px; text-align: center; }
+@media (max-width: 760px) {
+  .uiPagination { justify-content: center; }
+  .uiPaginationSummary { flex-basis: 100%; text-align: center; }
+  .uiPaginationButtons { justify-content: center; }
+  .uiPaginationButton { min-width: 44px; min-height: 44px; }
+}

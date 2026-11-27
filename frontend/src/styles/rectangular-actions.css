@@ -1,0 +1,30 @@
+/*
+ * Единая геометрия интерактивных элементов проекта «Рядом».
+ * Плоские прямоугольные кнопки по референсу СПбГУ — без скруглений.
+ *
+ * Не изменяет геометрию карточек, полей ввода, изображений, аватаров,
+ * чекбоксов и радиокнопок. Цвета, границы, размеры и состояния остаются
+ * в стилях конкретных компонентов.
+ *
+ * !important требуется, потому что страницы могут подключать собственные
+ * CSS после globals.css, а там заданы большие border-radius.
+ */
+button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+[role="button"],
+a.uiButton,
+a.ui-button,
+a.uiButtonSecondary,
+a.ui-button-secondary,
+a.authRoleAction,
+a.siteNavLink,
+a.siteLoginLink,
+a.siteCrisisLink,
+a[class*="Button"],
+a[class*="button"],
+a[class*="btn"],
+.route-home .homeActions a {
+  border-radius: 0 !important;
+}
