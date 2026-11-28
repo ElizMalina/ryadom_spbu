@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { backendAuthEnabled, backendAuthError, backendContentPath, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import { demoEnabled, getDemoUser } from '@/modules/auth/server/demo-auth';
 import { deleteOwnArticle, reviseOwnArticle, reviewSubmission, type Kind } from '@/modules/auth/server/demo-content';
 import { hasRole } from '@/modules/auth/model/types';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ kind: string; id: string }> }) {
-  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
   const { kind, id } = await params;
   if (kind !== 'wall' && kind !== 'article') return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (backendAuthEnabled()) {
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return backendAuthError(404, 'not_found');
+    return forwardBackendAuth(req, backendContentPath(kind, id));
+  }
+  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   let payload: unknown;
@@ -33,10 +38,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ki
   return NextResponse.json({ id: updated.id, status: updated.status }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ kind: string; id: string }> }) {
-  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ kind: string; id: string }> }) {
   const { kind, id } = await params;
   if (kind !== 'article') return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (backendAuthEnabled()) {
+    if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return backendAuthError(404, 'not_found');
+    return forwardBackendAuth(req, backendContentPath(kind, id));
+  }
+  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasRole(user, 'consultant')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });

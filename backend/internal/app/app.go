@@ -9,7 +9,9 @@ import (
 	"github.com/mshipilov5/Ryadom_spbu/backend/config"
 	httpcontroller "github.com/mshipilov5/Ryadom_spbu/backend/internal/controller/http"
 	"github.com/mshipilov5/Ryadom_spbu/backend/internal/migrate"
+	authservice "github.com/mshipilov5/Ryadom_spbu/backend/internal/service/auth"
 	educationservice "github.com/mshipilov5/Ryadom_spbu/backend/internal/service/education"
+	authstore "github.com/mshipilov5/Ryadom_spbu/backend/internal/store/auth"
 	educationstore "github.com/mshipilov5/Ryadom_spbu/backend/internal/store/education"
 	"github.com/mshipilov5/Ryadom_spbu/backend/pkg/postgres"
 )
@@ -27,8 +29,14 @@ func New(ctx context.Context, cfg config.Config, log *slog.Logger) (*fiber.App, 
 
 	store := educationstore.New(connection)
 	service := educationservice.New(store)
+	auth := authservice.New(authstore.New(connection.SQLDB()))
+	if err := auth.BootstrapAdmin(ctx, cfg.AuthBootstrapAdminUsername, cfg.AuthBootstrapAdminPassword); err != nil {
+		connection.Close()
+		return nil, nil, fmt.Errorf("bootstrap auth administrator: %w", err)
+	}
+
 	httpApp := fiber.New(fiber.Config{DisableStartupMessage: true})
-	httpcontroller.NewRouter(httpApp, service, cfg.CORSAllowedOrigins, log)
+	httpcontroller.NewRouter(httpApp, service, cfg.CORSAllowedOrigins, log, httpcontroller.WithAuth(auth, cfg.AuthCookieSecure, connection.SQLDB()))
 
 	return httpApp, connection.Close, nil
 }

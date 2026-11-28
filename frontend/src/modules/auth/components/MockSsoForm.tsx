@@ -14,9 +14,9 @@ const TEST_ACCOUNTS = [
   { login: 'admin.demo', label: 'Администратор' },
 ] as const;
 
-export function MockSsoForm({ returnTo }: { returnTo: string }) {
-  const [username, setUsername] = useState('student.demo');
-  const [password, setPassword] = useState('Demo12345!');
+export function MockSsoForm({ returnTo, demoMode }: { returnTo: string; demoMode: boolean }) {
+  const [username, setUsername] = useState(demoMode ? 'student.demo' : '');
+  const [password, setPassword] = useState(demoMode ? 'Demo12345!' : '');
   const [reveal, setReveal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +29,9 @@ export function MockSsoForm({ returnTo }: { returnTo: string }) {
         body: JSON.stringify({ username, password }),
       });
       if (!response.ok) {
-        setError(response.status === 401 ? 'Неверный логин или пароль.' : 'Сервис входа недоступен.');
+        if (response.status === 401) setError('Неверный логин или пароль.');
+        else if (response.status === 429) setError('Слишком много попыток. Попробуйте позже.');
+        else setError('Сервис входа недоступен.');
         return;
       }
       window.location.assign(safeReturnTo(returnTo));
@@ -43,7 +45,7 @@ export function MockSsoForm({ returnTo }: { returnTo: string }) {
         <Image className="ssoBrandLogo" src="/spbu-emblem-white.png" width={247} height={247} alt="Герб СПбГУ" priority />
       </header>
       <main className="ssoPanel">
-        <h1>Вход в учетную запись</h1>
+        <h1>Вход в учётную запись</h1>
         <form onSubmit={event => void submit(event)}>
           <label htmlFor="sso-username">Имя пользователя</label>
           <input id="sso-username" name="username" value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" required minLength={1} maxLength={100} />
@@ -55,13 +57,13 @@ export function MockSsoForm({ returnTo }: { returnTo: string }) {
           {error && <p role="alert" className="ssoError">{error}</p>}
           <button className="ssoSubmit" disabled={busy} type="submit">{busy ? 'Выполняется вход…' : 'Вход'}</button>
         </form>
-        <div className="ssoAccountChooser">
+        {demoMode && <div className="ssoAccountChooser">
           <strong>Тестовые учётные записи</strong>
           <p>Выберите учётную запись. Пароль для всех: <code>Demo12345!</code>.</p>
           <div className="ssoAccounts">
             {TEST_ACCOUNTS.map(account => <button key={account.login} type="button" className={username === account.login ? 'isSelected' : ''} aria-pressed={username === account.login} onClick={() => setUsername(account.login)}>{account.label}</button>)}
           </div>
-        </div>
+        </div>}
         <a className="ssoCancel" href={safeReturnTo(returnTo)}>Вернуться без входа</a>
       </main>
     </div>

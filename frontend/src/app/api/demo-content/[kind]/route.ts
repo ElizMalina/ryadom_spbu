@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { backendAuthEnabled, backendAuthError, backendContentPath, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import { demoEnabled, getDemoUser } from '@/modules/auth/server/demo-auth';
 import { createSubmission, listForReview, listOwnArticles, listPublicWall, type Kind } from '@/modules/auth/server/demo-content';
 import { hasRole } from '@/modules/auth/model/types';
@@ -8,9 +9,18 @@ const headers = { 'Cache-Control': 'no-store' };
 const validKind = (value: string): value is Kind => value === 'wall' || value === 'article';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ kind: string }> }) {
-  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   const { kind } = await params;
   if (!validKind(kind)) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (backendAuthEnabled()) {
+    const views = req.nextUrl.searchParams.getAll('view');
+    const view = views[0];
+    if (views.length > 1 || (view !== undefined && view !== 'queue' && !(kind === 'article' && view === 'mine'))) {
+      return backendAuthError(400, 'invalid_query');
+    }
+    const search = view ? new URLSearchParams({ view }) : undefined;
+    return forwardBackendAuth(req, backendContentPath(kind), search);
+  }
+  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   if (kind === 'wall' && req.nextUrl.searchParams.get('view') !== 'queue') return NextResponse.json({ items: await listPublicWall() }, { headers });
   if (kind === 'article' && req.nextUrl.searchParams.get('view') === 'mine') {
     const author = await getDemoUser();
@@ -24,9 +34,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ kind: string }> }) {
-  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   const { kind } = await params;
   if (!validKind(kind)) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  if (backendAuthEnabled()) return forwardBackendAuth(request, backendContentPath(kind));
+  if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   if (!hasRole(user, kind === 'wall' ? 'student' : 'consultant')) return NextResponse.json({ error: 'forbidden' }, { status: 403 });

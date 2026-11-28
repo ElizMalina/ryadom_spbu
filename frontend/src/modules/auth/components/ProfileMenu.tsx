@@ -31,9 +31,9 @@ export function ProfileMenu() {
   if (status === 'loading') return <span className="siteAuthStatus" role="status">Проверка входа…</span>;
   if (status === 'error') return <span className="siteAuthStatus" role="status">Сервис входа недоступен</span>;
   if (!user) {
-    return <Link className="siteLoginLink" href={`/auth/sso?returnTo=${encodeURIComponent(safeReturnTo(pathname))}`}>Войти через СПбГУ</Link>;
+    return <Link className="siteLoginLink" href={`/auth/sso?returnTo=${encodeURIComponent(safeReturnTo(pathname))}`}>Войти</Link>;
   }
-  const label = user.roles.map(role => ROLE_LABELS[role]).join(', ');
+  const label = user.roles.map(role => ROLE_LABELS[role]).join(', ') || 'Роли пока не назначены';
   const handleLogout = async () => {
     setBusy(true); setError('');
     try { await logout(); } catch { setError('Не удалось выйти. Попробуйте ещё раз.'); setBusy(false); }

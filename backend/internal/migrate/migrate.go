@@ -15,6 +15,8 @@ type migration struct {
 
 var migrations = []migration{
 	{version: "000001", upSQL: data.InitialUp},
+	{version: "000003", upSQL: data.AuthUp},
+	{version: "000004", upSQL: data.SubmissionsUp},
 }
 
 func Up(ctx context.Context, db *sql.DB) error {
