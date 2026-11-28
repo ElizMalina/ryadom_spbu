@@ -12,3 +12,6 @@ var AuthUp string
 
 //go:embed 000004_submissions.up.sql
 var SubmissionsUp string
+
+//go:embed 000005_events.up.sql
+var EventsUp string

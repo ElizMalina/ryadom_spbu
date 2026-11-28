@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { backendAuthEnabled, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import { getDemoUser } from '@/modules/auth/server/demo-auth';
 import { hasRole } from '@/modules/auth/model/types';
 import {
@@ -10,6 +11,11 @@ export const dynamic = 'force-dynamic';
 const headers = { 'Cache-Control': 'no-store' };
 
 export async function GET(request: NextRequest) {
+  if (backendAuthEnabled()) {
+    const scope = request.nextUrl.searchParams.get('scope');
+    const search = scope ? new URLSearchParams({ scope }) : undefined;
+    return forwardBackendAuth(request, '/api/v1/events', search);
+  }
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401, headers });
   const scope = request.nextUrl.searchParams.get('scope') || (canManageMeetings(user) ? 'created' : 'assigned');
@@ -28,6 +34,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (backendAuthEnabled()) return forwardBackendAuth(request, '/api/v1/events');
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401, headers });
   if (!canManageMeetings(user)) return NextResponse.json({ error: 'forbidden' }, { status: 403, headers });

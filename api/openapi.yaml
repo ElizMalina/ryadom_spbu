@@ -17,6 +17,8 @@ tags:
     description: Вход в существующий аккаунт, сессии и управление ролями
   - name: Wall
     description: Анонимные записи стены и их модерация
+  - name: Events
+    description: Назначенные встречи и управление участием
 paths:
   /api/v1/psychoeducation/materials:
     get:
@@ -588,6 +590,177 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/v1/events:
+    get:
+      tags: [Events]
+      summary: Получить свои встречи
+      description: |
+        scope=assigned возвращает встречи, назначенные текущему студенту,
+        без списка других участников. scope=created возвращает только встречи,
+        созданные текущим консультантом или психологом, со списками участников.
+        Если scope пуст, для консультанта или психолога выбирается created,
+        для студента — assigned. Список сортируется по дате и времени.
+      operationId: listEvents
+      security:
+        - SessionCookie: []
+      parameters:
+        - name: scope
+          in: query
+          schema:
+            type: string
+            enum: [assigned, created]
+      responses:
+        '200':
+          description: Встречи и выбранный scope
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    required: [events, scope]
+                    properties:
+                      scope:
+                        type: string
+                        enum: [assigned]
+                      events:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AssignedEvent'
+                  - type: object
+                    required: [events, scope]
+                    properties:
+                      scope:
+                        type: string
+                        enum: [created]
+                      events:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CreatedEvent'
+        '400':
+          description: Неизвестное значение scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventError'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '503':
+          $ref: '#/components/responses/EventStorageUnavailable'
+    post:
+      tags: [Events]
+      summary: Назначить встречу студентам
+      description: Доступно консультанту или психологу. Дата и время задаются по Москве.
+      operationId: createEvent
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventRequest'
+      responses:
+        '201':
+          description: Встреча создана
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event]
+                properties:
+                  event:
+                    $ref: '#/components/schemas/CreatedEvent'
+        '400':
+          description: Неверные поля, время в прошлом или отсутствует роль студента у участника
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventError'
+              example:
+                error: past_meeting
+                code: past_meeting
+                message: Укажите будущие дату и время по Москве
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '503':
+          $ref: '#/components/responses/EventStorageUnavailable'
+
+  /api/v1/events/students:
+    get:
+      tags: [Events]
+      summary: Получить список студентов для назначения встречи
+      description: Доступно консультанту или психологу.
+      operationId: listEventStudents
+      security:
+        - SessionCookie: []
+      responses:
+        '200':
+          description: Аккаунты с текущей ролью student
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [students]
+                properties:
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '503':
+          $ref: '#/components/responses/EventStorageUnavailable'
+
+  /api/v1/events/{id}:
+    delete:
+      tags: [Events]
+      summary: Удалить свою встречу или отменить своё участие
+      description: |
+        Организатор с ролью консультанта или психолога удаляет свою встречу
+        для всех участников. Студент отменяет только собственное участие.
+      operationId: deleteEventOrCancelAttendance
+      security:
+        - SessionCookie: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Встреча удалена или участие отменено
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [action]
+                properties:
+                  action:
+                    type: string
+                    enum: [deleted, unassigned]
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          description: Встреча не найдена или недоступна текущему пользователю
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventError'
+        '503':
+          $ref: '#/components/responses/EventStorageUnavailable'
+
 components:
   parameters:
     SubmissionID:
@@ -760,6 +933,102 @@ components:
                 - $ref: '#/components/schemas/SubmissionRevision'
               description: Возвращается в очереди статей для рецензента.
 
+    EventUser:
+      type: object
+      required: [id, username, displayName]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+
+    EventDate:
+      type: string
+      format: date
+      description: Календарная дата по Москве с 2020 по 2100 год.
+
+    EventTime:
+      type: string
+      pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$'
+      description: Время в формате HH:mm по Москве.
+
+    EventBase:
+      type: object
+      required: [id, title, date, time, address, organizer, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        date:
+          $ref: '#/components/schemas/EventDate'
+        time:
+          $ref: '#/components/schemas/EventTime'
+        address:
+          type: string
+        organizer:
+          $ref: '#/components/schemas/EventUser'
+        createdAt:
+          type: string
+          format: date-time
+
+    AssignedEvent:
+      allOf:
+        - $ref: '#/components/schemas/EventBase'
+        - type: object
+          not:
+            required: [participants]
+
+    CreatedEvent:
+      allOf:
+        - $ref: '#/components/schemas/EventBase'
+        - type: object
+          required: [participants]
+          properties:
+            participants:
+              type: array
+              items:
+                $ref: '#/components/schemas/EventUser'
+
+    CreateEventRequest:
+      type: object
+      additionalProperties: false
+      required: [title, date, time, address, studentIds]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+        date:
+          $ref: '#/components/schemas/EventDate'
+        time:
+          $ref: '#/components/schemas/EventTime'
+        address:
+          type: string
+          minLength: 1
+          maxLength: 300
+        studentIds:
+          type: array
+          minItems: 1
+          maxItems: 100
+          uniqueItems: true
+          items:
+            type: string
+            pattern: '^[1-9][0-9]{0,18}$'
+
+    EventError:
+      allOf:
+        - $ref: '#/components/schemas/ApiError'
+        - type: object
+          required: [error]
+          properties:
+            error:
+              type: string
+              description: Код ошибки для клиента событий.
+
     MaterialList:
       type: object
       required: [items, total]
@@ -925,6 +1194,13 @@ components:
           nullable: true
 
   responses:
+    EventStorageUnavailable:
+      description: Хранилище событий временно недоступно
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EventError'
+
     AuthSignedIn:
       description: Пользователь вошёл, сессия действует 8 часов
       headers:

@@ -14,7 +14,7 @@ import (
 type Router struct {
 	auth             *authservice.Service
 	authCookieSecure bool
-	submissionsDB    *sql.DB
+	authDB           *sql.DB
 	app              *fiber.App
 	educationService core.EducationService
 	log              *slog.Logger
@@ -27,7 +27,7 @@ func WithAuth(service *authservice.Service, secureCookie bool, db *sql.DB) Route
 	return func(r *Router) {
 		r.auth = service
 		r.authCookieSecure = secureCookie
-		r.submissionsDB = db
+		r.authDB = db
 	}
 }
 
@@ -62,8 +62,9 @@ func (r *Router) initRoutes() {
 	if r.auth != nil {
 		r.mountAuth(v1)
 	}
-	if r.submissionsDB != nil {
-		r.mountSubmissions(v1, r.submissionsDB)
+	if r.authDB != nil {
+		r.mountSubmissions(v1, r.authDB)
+		r.mountEvents(v1, r.authDB)
 	}
 }
 
