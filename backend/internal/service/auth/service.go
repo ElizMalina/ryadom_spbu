@@ -71,7 +71,7 @@ func (s *Service) Register(ctx context.Context, username, displayName, password,
 func (s *Service) Login(ctx context.Context, username, password, previous string) (core.User, string, error) {
 	username = normalizeUsername(username)
 	if !usernamePattern.MatchString(username) || password == "" || len(password) > 72 {
-		return core.User{}, "", ErrInvalidInput
+		return core.User{}, "", ErrInvalidCredentials
 	}
 	id, hash, err := s.store.PasswordHash(ctx, username)
 	if errors.Is(err, authstore.ErrUserNotFound) {

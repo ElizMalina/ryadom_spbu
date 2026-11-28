@@ -78,13 +78,16 @@ func (r *Router) getSession(ctx *fiber.Ctx) error {
 
 func (r *Router) login(ctx *fiber.Ctx) error {
 	var form struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
+		Username *string `json:"username"`
+		Password *string `json:"password"`
 	}
 	if status := readAuthJSON(ctx, &form); status != 0 {
 		return invalidAuthJSON(ctx, status)
 	}
-	user, token, err := r.auth.Login(ctx.UserContext(), form.Username, form.Password, ctx.Cookies(sessionCookieName))
+	if form.Username == nil || form.Password == nil {
+		return r.writeAuthError(ctx, authservice.ErrInvalidInput)
+	}
+	user, token, err := r.auth.Login(ctx.UserContext(), *form.Username, *form.Password, ctx.Cookies(sessionCookieName))
 	if err != nil {
 		return r.writeAuthError(ctx, err)
 	}

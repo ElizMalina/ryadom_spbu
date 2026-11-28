@@ -44,7 +44,21 @@ func TestAccountSessionsAndRoleChanges(t *testing.T) {
 	}
 	token := sessionCookie(t, registered)
 	authRequest(t, server, "POST", register, registration, nil, 409)
-	authRequest(t, server, "POST", session, map[string]string{"username": "new.student", "password": "wrong"}, nil, 401)
+	for _, credentials := range []map[string]string{
+		{"username": "new.student", "password": "wrong"},
+		{"username": "студент", "password": password},
+		{"username": "new.student", "password": ""},
+	} {
+		result := authRequest(t, server, "POST", session, credentials, nil, 401)
+		var failure struct {
+			Code string `json:"code"`
+		}
+		decodeResponse(t, result, &failure)
+		if failure.Code != "invalid_credentials" {
+			t.Fatalf("login error = %q, want invalid_credentials", failure.Code)
+		}
+	}
+	authRequest(t, server, "POST", session, map[string]string{"username": "new.student"}, nil, 400)
 	authRequest(t, server, "GET", users, nil, token, 403)
 	authRequest(t, server, "PATCH", users, map[string]any{"username": "new.student", "roles": []string{"admin"}}, token, 403)
 

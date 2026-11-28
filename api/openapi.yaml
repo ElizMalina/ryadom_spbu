@@ -481,6 +481,10 @@ paths:
               oneOf:
                 - type: object
                   required: [status]
+                  not:
+                    anyOf:
+                      - required: [title]
+                      - required: [body]
                   properties:
                     status:
                       type: string
@@ -491,6 +495,8 @@ paths:
                       description: Обязателен для решения по статье. Берётся из очереди статей.
                 - type: object
                   required: [title, body]
+                  not:
+                    required: [status]
                   properties:
                     title:
                       type: string
@@ -628,8 +634,7 @@ components:
         password:
           type: string
           format: password
-          minLength: 1
-          description: До 72 байт UTF-8.
+          description: Пустой пароль или пароль длиннее 72 байт UTF-8 возвращает 401.
 
     RegistrationRequest:
       type: object
