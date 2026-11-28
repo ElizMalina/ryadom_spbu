@@ -101,7 +101,13 @@ func TestAccountSessionsAndRoleChanges(t *testing.T) {
 	}
 }
 
-func newAuthTestServer(t *testing.T) *fiber.App {
+type testAuthAccount struct {
+	username    string
+	displayName string
+	roles       []string
+}
+
+func newAuthTestServer(t *testing.T, accounts ...testAuthAccount) *fiber.App {
 	t.Helper()
 	dsn := os.Getenv("TEST_DATABASE_URL")
 	if dsn == "" {
@@ -136,11 +142,20 @@ func newAuthTestServer(t *testing.T) *fiber.App {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := database.Exec(
-		"INSERT INTO "+schema+".auth_users (username, display_name, password_hash) VALUES ($1, $2, $3)",
-		"new.student", "Студент", string(passwordHash),
-	); err != nil {
-		t.Fatal(err)
+	accounts = append(accounts, testAuthAccount{
+		username: "new.student", displayName: "Студент", roles: []string{},
+	})
+	for _, account := range accounts {
+		roles, err := json.Marshal(account.roles)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := database.Exec(
+			"INSERT INTO "+schema+".auth_users (username, display_name, password_hash, roles) VALUES ($1, $2, $3, $4)",
+			account.username, account.displayName, string(passwordHash), roles,
+		); err != nil {
+			t.Fatal(err)
+		}
 	}
 	return server
 }

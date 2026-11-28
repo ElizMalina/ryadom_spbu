@@ -80,7 +80,7 @@ func (r *Router) login(ctx *fiber.Ctx) error {
 		Username *string `json:"username"`
 		Password *string `json:"password"`
 	}
-	if status := readAuthJSON(ctx, &form); status != 0 {
+	if status := readJSONBody(ctx, &form, 4096); status != 0 {
 		return invalidAuthJSON(ctx, status)
 	}
 	if form.Username == nil || form.Password == nil {
@@ -139,7 +139,7 @@ func (r *Router) updateUserRoles(ctx *fiber.Ctx) error {
 		Username string   `json:"username"`
 		Roles    []string `json:"roles"`
 	}
-	if status := readAuthJSON(ctx, &form); status != 0 {
+	if status := readJSONBody(ctx, &form, 4096); status != 0 {
 		return invalidAuthJSON(ctx, status)
 	}
 	if form.Roles == nil {
@@ -152,13 +152,13 @@ func (r *Router) updateUserRoles(ctx *fiber.Ctx) error {
 	return ctx.JSON(userResponse{User: &updated})
 }
 
-func readAuthJSON(ctx *fiber.Ctx, dst any) int {
+func readJSONBody(ctx *fiber.Ctx, dst any, limit int) int {
 	contentType, _, err := mime.ParseMediaType(ctx.Get("Content-Type"))
 	if err != nil || contentType != "application/json" {
 		return fiber.StatusUnsupportedMediaType
 	}
 	body := ctx.Body()
-	if len(body) > 4096 || !bytes.HasPrefix(bytes.TrimSpace(body), []byte("{")) {
+	if len(body) > limit || !bytes.HasPrefix(bytes.TrimSpace(body), []byte("{")) {
 		return fiber.StatusBadRequest
 	}
 	decoder := json.NewDecoder(bytes.NewReader(body))

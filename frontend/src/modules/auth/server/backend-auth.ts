@@ -33,7 +33,13 @@ const contentPaths = {
 } as const;
 type ContentKind = keyof typeof contentPaths;
 type ContentPath = (typeof contentPaths)[ContentKind];
-type Endpoint = '/api/v1/auth/session' | '/api/v1/users' | ContentPath | `${ContentPath}/${string}`;
+type Endpoint =
+  | '/api/v1/auth/session'
+  | '/api/v1/users'
+  | ContentPath
+  | `${ContentPath}/${string}`
+  | '/api/v1/events'
+  | `/api/v1/events/${string}`;
 
 export function backendContentPath(kind: ContentKind, id?: string): Endpoint {
   const path = contentPaths[kind];

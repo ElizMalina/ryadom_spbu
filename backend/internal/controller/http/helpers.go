@@ -31,17 +31,21 @@ func requestIDMiddleware(ctx *fiber.Ctx) error {
 }
 
 func writeError(ctx *fiber.Ctx, status int, code string, message string) error {
+	return ctx.Status(status).JSON(newErrorResponse(ctx, code, message))
+}
+
+func newErrorResponse(ctx *fiber.Ctx, code, message string) apiErrorResponse {
 	requestID, _ := ctx.Locals(requestIDKey).(string)
 	var requestIDPointer *string
 	if requestID != "" {
 		requestIDPointer = &requestID
 	}
 
-	return ctx.Status(status).JSON(apiErrorResponse{
+	return apiErrorResponse{
 		Code:      code,
 		Message:   message,
 		RequestID: requestIDPointer,
-	})
+	}
 }
 
 func (r *Router) writeServiceError(ctx *fiber.Ctx, err error) error {
