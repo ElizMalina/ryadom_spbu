@@ -3,7 +3,7 @@ info:
   title: "Рядом — API"
   version: 1.0.0
   description: |
-    API каталога статей, локальных аккаунтов и публикаций.
+    API главной страницы, каталога статей, локальных аккаунтов и публикаций.
     Публичный каталог доступен гостю и возвращает опубликованные статьи.
 servers:
   - url: https://api.example.org
@@ -11,6 +11,8 @@ servers:
   - url: http://localhost:8080
     description: Local development
 tags:
+  - name: Home
+    description: Рекомендация и карточки главной страницы
   - name: Psychoeducation
     description: Каталог, авторские статьи и клиническое рецензирование
   - name: Auth
@@ -20,6 +22,27 @@ tags:
   - name: Events
     description: Назначенные встречи и управление участием
 paths:
+  /api/v1/home:
+    get:
+      tags: [Home]
+      summary: Получить подборку главной страницы
+      operationId: getHomeFeed
+      security: []
+      responses:
+        '200':
+          description: Рекомендация и доступные карточки
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HomeFeed'
+              example:
+                message: Начните с небольшого шага
+                event: null
+                practice:
+                  title: Пауза на 2 минуты
+                  description: Короткое упражнение
+                  href: /practices
+
   /api/v1/psychoeducation/materials:
     get:
       tags: [Psychoeducation]
@@ -776,6 +799,32 @@ components:
       in: cookie
       name: ryadom_session
   schemas:
+    HomeFeed:
+      type: object
+      required: [message, event, practice]
+      properties:
+        message:
+          type: string
+        event:
+          allOf:
+            - $ref: '#/components/schemas/HomeFeedItem'
+          description: null, если нет события.
+        practice:
+          $ref: '#/components/schemas/HomeFeedItem'
+
+    HomeFeedItem:
+      type: object
+      nullable: true
+      required: [title, description, href]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        href:
+          type: string
+          example: /practices
+
     AuthRole:
       type: string
       description: Назначаемая роль. Гость представлен отсутствием сессии.

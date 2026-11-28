@@ -62,8 +62,21 @@ docker compose up --build -d
 
 ```bash
 curl http://localhost:8080/health
+curl http://localhost:8080/api/v1/home
 curl http://localhost:8080/api/v1/psychoeducation/materials
 ```
+
+Чтобы главная получала данные из Go, уберите `HOME_API_MODE=demo` из
+`frontend/.env.local` и задайте:
+
+```dotenv
+HOME_API_URL=http://localhost:8080
+HOME_API_PATH=/api/v1/home
+```
+
+После перезапуска Next.js раздел «На сегодня» загружает рекомендацию и
+карточку практики через `/api/home`. Пока источник событий не подключён,
+Go возвращает `event: null`, и карточка события не отображается.
 
 Чтобы подключить вход, управление ролями, стену и статьи, задайте в
 `frontend/.env.local`:
@@ -72,7 +85,6 @@ curl http://localhost:8080/api/v1/psychoeducation/materials
 AUTH_API_BASE_URL=http://localhost:8080
 PSYCHO_API_MODE=backend
 PSYCHO_API_BASE_URL=http://localhost:8080
-HOME_API_MODE=demo
 ```
 
 Перезапустите `npm run dev` и откройте
