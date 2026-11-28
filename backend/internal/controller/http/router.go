@@ -53,6 +53,7 @@ func (r *Router) initRoutes() {
 	r.app.Get("/ready", r.ready)
 
 	v1 := r.app.Group("/api/v1")
+	v1.Get("/home", r.getHome)
 
 	// psychoeducation
 	v1.Get("/psychoeducation/materials", r.getMaterials)
