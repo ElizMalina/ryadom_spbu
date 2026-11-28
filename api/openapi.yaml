@@ -12,11 +12,11 @@ servers:
     description: Local development
 tags:
   - name: Psychoeducation
-    description: Публичный каталог психопросветительных материалов
+    description: Каталог, авторские статьи и клиническое рецензирование
   - name: Auth
-    description: Локальные аккаунты, сессии и управление ролями
-  - name: Submissions
-    description: Записи стены, авторские статьи и их проверка
+    description: Вход в существующий аккаунт, сессии и управление ролями
+  - name: Wall
+    description: Анонимные записи стены и их модерация
 paths:
   /api/v1/psychoeducation/materials:
     get:
@@ -266,41 +266,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/v1/auth/register:
-    post:
-      tags: [Auth]
-      summary: Создать локальный аккаунт и войти
-      description: |
-        Новый аккаунт создаётся без назначенных ролей.
-        До 20 попыток регистрации в минуту для одного источника запросов.
-      operationId: registerUser
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegistrationRequest'
-      responses:
-        '201':
-          $ref: '#/components/responses/AuthSignedIn'
-        '400':
-          $ref: '#/components/responses/InvalidRequest'
-        '403':
-          $ref: '#/components/responses/AccessDenied'
-        '409':
-          description: Логин уже занят
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-        '415':
-          $ref: '#/components/responses/JSONRequired'
-        '429':
-          $ref: '#/components/responses/AuthRateLimit'
-        '500':
-          $ref: '#/components/responses/InternalError'
-
   /api/v1/users:
     get:
       tags: [Auth]
@@ -367,31 +332,25 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/v1/submissions/{kind}:
-    parameters:
-      - $ref: '#/components/parameters/SubmissionKind'
+  /api/v1/psychoeducation/articles:
     get:
-      tags: [Submissions]
-      summary: Получить записи стены или список материалов для работы
+      tags: [Psychoeducation]
+      summary: Получить свои статьи или очередь рецензирования
       description: |
-        Без view или с view=public стена доступна гостям и содержит только
-        одобренные анонимные записи. Для статьи по умолчанию используется view=queue. Очередь стены
-        доступна moderator, очередь статей доступна reviewer. В очереди статей
-        каждая запись содержит revision. view=mine доступно consultant для
-        собственных статей.
-      operationId: listSubmissions
+        view=mine возвращает собственные статьи пользователя с ролью consultant.
+        view=queue возвращает статьи, ожидающие решения reviewer.
+      operationId: listAuthoredArticles
       security:
-        - {}
         - SessionCookie: []
       parameters:
         - name: view
           in: query
           schema:
             type: string
-            enum: [public, queue, mine]
+            enum: [mine, queue]
       responses:
         '200':
-          description: Записи стены, очередь проверки или собственные статьи
+          description: Статьи для работы автора или рецензента
           content:
             application/json:
               schema:
@@ -401,26 +360,20 @@ paths:
                   items:
                     type: array
                     items:
-                      anyOf:
-                        - $ref: '#/components/schemas/SubmissionItem'
-                        - $ref: '#/components/schemas/PublicWallPost'
+                      $ref: '#/components/schemas/ArticleSubmission'
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '401':
           $ref: '#/components/responses/AuthenticationRequired'
         '403':
           $ref: '#/components/responses/AccessDenied'
-        '404':
-          $ref: '#/components/responses/SubmissionNotFound'
         '500':
           $ref: '#/components/responses/InternalError'
     post:
-      tags: [Submissions]
-      summary: Отправить запись на проверку
-      description: |
-        Запись на стене может создать student, статью может отправить consultant.
-        Заголовок обязателен для статьи и игнорируется для стены.
-      operationId: createSubmission
+      tags: [Psychoeducation]
+      summary: Отправить статью на клиническую проверку
+      description: Доступно с ролью consultant.
+      operationId: createAuthoredArticle
       security:
         - SessionCookie: []
       requestBody:
@@ -428,49 +381,36 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SubmissionContent'
+              $ref: '#/components/schemas/ArticleContent'
       responses:
         '201':
-          description: Запись создана в статусе pending
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubmissionState'
+          $ref: '#/components/responses/SubmissionCreated'
         '400':
           $ref: '#/components/responses/InvalidRequest'
         '401':
           $ref: '#/components/responses/AuthenticationRequired'
         '403':
           $ref: '#/components/responses/AccessDenied'
-        '404':
-          $ref: '#/components/responses/SubmissionNotFound'
         '415':
           $ref: '#/components/responses/JSONRequired'
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/v1/submissions/{kind}/{id}:
+  /api/v1/psychoeducation/articles/{id}:
     parameters:
-      - $ref: '#/components/parameters/SubmissionKind'
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
+      - $ref: '#/components/parameters/SubmissionID'
     patch:
-      tags: [Submissions]
-      summary: Проверить запись или отредактировать собственную статью
+      tags: [Psychoeducation]
+      summary: Отредактировать свою статью или принять решение при рецензировании
       description: |
-        moderator проверяет записи стены, reviewer проверяет статьи.
-        Рецензент не может одобрить собственную статью. Одобренная статья появляется
-        в публичном каталоге. Автор с ролью consultant может изменить свою
-        статью. После правки статья возвращается на проверку и скрывается из каталога.
-        Для одобрения или отклонения статьи передайте revision из очереди. Если
-        автор изменил статью после загрузки очереди, API возвращает 409. Обновите
-        очередь и прочитайте изменённую статью перед новым решением. Для стены
-        достаточно передать status.
-      operationId: updateSubmission
+        consultant может изменить собственную статью, передав title и body.
+        После правки статья возвращается на проверку и скрывается из каталога.
+        reviewer передаёт status. Рецензент не может одобрить собственную статью.
+        Одобренная статья появляется в публичном каталоге.
+        Если клиент передаёт revision из очереди, сервер проверяет, что версия
+        не изменилась. При ответе 409 обновите очередь и прочитайте новую версию
+        перед повторным решением.
+      operationId: updateAuthoredArticle
       security:
         - SessionCookie: []
       requestBody:
@@ -479,49 +419,18 @@ paths:
           application/json:
             schema:
               oneOf:
-                - type: object
-                  required: [status]
-                  not:
-                    anyOf:
-                      - required: [title]
-                      - required: [body]
-                  properties:
-                    status:
-                      type: string
-                      enum: [approved, rejected]
-                    revision:
-                      allOf:
-                        - $ref: '#/components/schemas/SubmissionRevision'
-                      description: Обязателен для решения по статье. Берётся из очереди статей.
-                - type: object
-                  required: [title, body]
-                  not:
-                    required: [status]
-                  properties:
-                    title:
-                      type: string
-                      minLength: 1
-                      maxLength: 160
-                    body:
-                      type: string
-                      minLength: 1
-                      maxLength: 5000
+                - allOf:
+                    - $ref: '#/components/schemas/ReviewDecision'
+                    - type: object
+                      properties:
+                        revision:
+                          $ref: '#/components/schemas/SubmissionRevision'
+                - $ref: '#/components/schemas/ArticleContent'
       responses:
         '200':
-          description: Запись изменена
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubmissionState'
+          $ref: '#/components/responses/SubmissionChanged'
         '400':
-          description: Некорректный запрос, в том числе отсутствующий или недопустимый revision для решения по статье
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiError'
-              example:
-                code: invalid_revision
-                message: Укажите версию статьи из очереди проверки
+          $ref: '#/components/responses/InvalidRequest'
         '401':
           $ref: '#/components/responses/AuthenticationRequired'
         '403':
@@ -529,7 +438,7 @@ paths:
         '404':
           $ref: '#/components/responses/SubmissionNotFound'
         '409':
-          description: Версия статьи изменилась. Обновите очередь и прочитайте статью заново.
+          description: Переданная версия статьи устарела
           content:
             application/json:
               schema:
@@ -542,10 +451,10 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
     delete:
-      tags: [Submissions]
+      tags: [Psychoeducation]
       summary: Удалить собственную статью
-      description: Доступно автору с ролью consultant. Применяется только к kind=article.
-      operationId: deleteSubmission
+      description: Доступно автору статьи с ролью consultant.
+      operationId: deleteAuthoredArticle
       security:
         - SessionCookie: []
       responses:
@@ -571,14 +480,123 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/v1/wall:
+    get:
+      tags: [Wall]
+      summary: Получить записи стены или очередь модерации
+      description: |
+        Без view или с view=public возвращаются одобренные анонимные записи.
+        view=queue показывает записи на проверке пользователю с ролью moderator.
+      operationId: listWallPosts
+      security:
+        - {}
+        - SessionCookie: []
+      parameters:
+        - name: view
+          in: query
+          schema:
+            type: string
+            enum: [public, queue]
+      responses:
+        '200':
+          description: Публичные записи или очередь модерации
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: '#/components/schemas/WallQueueItem'
+                        - $ref: '#/components/schemas/PublicWallPost'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Wall]
+      summary: Отправить запись на модерацию
+      description: Доступно с ролью student.
+      operationId: createWallPost
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [body]
+              properties:
+                body:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+                title:
+                  type: string
+                  description: Для записи стены не используется.
+      responses:
+        '201':
+          $ref: '#/components/responses/SubmissionCreated'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/wall/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SubmissionID'
+    patch:
+      tags: [Wall]
+      summary: Одобрить или отклонить запись стены
+      description: Доступно с ролью moderator.
+      operationId: reviewWallPost
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewDecision'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionChanged'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/SubmissionNotFound'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 components:
   parameters:
-    SubmissionKind:
-      name: kind
+    SubmissionID:
+      name: id
       in: path
       required: true
       schema:
-        $ref: '#/components/schemas/SubmissionKind'
+        type: string
+        format: uuid
   securitySchemes:
     SessionCookie:
       type: apiKey
@@ -636,24 +654,6 @@ components:
           format: password
           description: Пустой пароль или пароль длиннее 72 байт UTF-8 возвращает 401.
 
-    RegistrationRequest:
-      type: object
-      additionalProperties: false
-      required: [username, displayName, password]
-      properties:
-        username:
-          type: string
-          description: После удаления пробелов по краям и приведения к нижнему регистру логин соответствует [a-z0-9][a-z0-9._-]{2,63}.
-          example: student.001
-        displayName:
-          type: string
-          description: От 1 до 100 символов после удаления пробелов по краям.
-        password:
-          type: string
-          format: password
-          minLength: 12
-          description: До 72 байт UTF-8.
-
     UpdateUserRolesRequest:
       type: object
       additionalProperties: false
@@ -669,28 +669,39 @@ components:
           items:
             $ref: '#/components/schemas/AuthRole'
 
-    SubmissionKind:
-      type: string
-      enum: [wall, article]
-
-    SubmissionContent:
+    ArticleContent:
       type: object
-      required: [body]
+      required: [title, body]
+      not:
+        required: [status]
       properties:
         title:
           type: string
-          description: Для статьи от 1 до 160 символов после удаления пробелов по краям.
+          minLength: 1
+          maxLength: 160
         body:
           type: string
           minLength: 1
           maxLength: 5000
+
+    ReviewDecision:
+      type: object
+      required: [status]
+      not:
+        anyOf:
+          - required: [title]
+          - required: [body]
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
 
     SubmissionRevision:
       type: integer
       format: int32
       minimum: 1
       maximum: 2147483647
-      description: Версия статьи. Первая версия равна 1.
+      description: Версия статьи в очереди. Первая версия равна 1.
       example: 1
 
     SubmissionState:
@@ -717,7 +728,7 @@ components:
           type: string
           format: date-time
 
-    SubmissionItem:
+    WallQueueItem:
       allOf:
         - $ref: '#/components/schemas/SubmissionState'
         - $ref: '#/components/schemas/PublicWallPost'
@@ -725,19 +736,29 @@ components:
           required: [kind]
           properties:
             kind:
-              $ref: '#/components/schemas/SubmissionKind'
-            revision:
-              allOf:
-                - $ref: '#/components/schemas/SubmissionRevision'
-              description: Возвращается только в очереди статей для рецензента.
+              type: string
+              enum: [wall]
+
+    ArticleSubmission:
+      allOf:
+        - $ref: '#/components/schemas/SubmissionState'
+        - $ref: '#/components/schemas/PublicWallPost'
+        - type: object
+          required: [kind, title, authorId, authorName]
+          properties:
+            kind:
+              type: string
+              enum: [article]
             title:
               type: string
             authorId:
               type: string
-              description: Не возвращается для записей стены.
             authorName:
               type: string
-              description: Не возвращается для записей стены.
+            revision:
+              allOf:
+                - $ref: '#/components/schemas/SubmissionRevision'
+              description: Возвращается в очереди статей для рецензента.
 
     MaterialList:
       type: object
@@ -916,7 +937,7 @@ components:
           schema:
             $ref: '#/components/schemas/AuthUserResponse'
     AuthRateLimit:
-      description: Превышен лимит попыток входа или регистрации
+      description: Превышен лимит попыток входа
       content:
         application/json:
           schema:
@@ -933,8 +954,20 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiError'
+    SubmissionCreated:
+      description: Запись создана и ожидает проверки
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubmissionState'
+    SubmissionChanged:
+      description: Запись изменена
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubmissionState'
     SubmissionNotFound:
-      description: Вид материала или подходящая запись не найдены
+      description: Подходящая запись не найдена
       content:
         application/json:
           schema:

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { backendAuthEnabled, backendAuthError, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
+import { backendAuthEnabled, backendAuthError, backendContentPath, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import { demoEnabled, getDemoUser } from '@/modules/auth/server/demo-auth';
 import { createSubmission, listForReview, listOwnArticles, listPublicWall, type Kind } from '@/modules/auth/server/demo-content';
 import { hasRole } from '@/modules/auth/model/types';
@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
       return backendAuthError(400, 'invalid_query');
     }
     const search = view ? new URLSearchParams({ view }) : undefined;
-    return forwardBackendAuth(req, `/api/v1/submissions/${kind}`, search);
+    return forwardBackendAuth(req, backendContentPath(kind), search);
   }
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   if (kind === 'wall' && req.nextUrl.searchParams.get('view') !== 'queue') return NextResponse.json({ items: await listPublicWall() }, { headers });
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ kind
 export async function POST(request: NextRequest, { params }: { params: Promise<{ kind: string }> }) {
   const { kind } = await params;
   if (!validKind(kind)) return NextResponse.json({ error: 'not_found' }, { status: 404 });
-  if (backendAuthEnabled()) return forwardBackendAuth(request, `/api/v1/submissions/${kind}`);
+  if (backendAuthEnabled()) return forwardBackendAuth(request, backendContentPath(kind));
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers });
   const user = await getDemoUser();
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });

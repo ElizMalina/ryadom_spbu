@@ -27,7 +27,6 @@ func (r *Router) mountAuth(v1 fiber.Router) {
 	auth.Get("/session", r.getSession)
 	auth.Post("/session", authRateLimit(60), r.login)
 	auth.Delete("/session", r.logout)
-	auth.Post("/register", authRateLimit(20), r.register)
 
 	users := v1.Group("/users", r.authRequest)
 	users.Get("/", r.listUsers)
@@ -93,23 +92,6 @@ func (r *Router) login(ctx *fiber.Ctx) error {
 	}
 	r.setSessionCookie(ctx, token, int(authservice.SessionTTL.Seconds()))
 	return ctx.JSON(userResponse{User: &user})
-}
-
-func (r *Router) register(ctx *fiber.Ctx) error {
-	var form struct {
-		Username    string `json:"username"`
-		DisplayName string `json:"displayName"`
-		Password    string `json:"password"`
-	}
-	if status := readAuthJSON(ctx, &form); status != 0 {
-		return invalidAuthJSON(ctx, status)
-	}
-	user, token, err := r.auth.Register(ctx.UserContext(), form.Username, form.DisplayName, form.Password, ctx.Cookies(sessionCookieName))
-	if err != nil {
-		return r.writeAuthError(ctx, err)
-	}
-	r.setSessionCookie(ctx, token, int(authservice.SessionTTL.Seconds()))
-	return ctx.Status(fiber.StatusCreated).JSON(userResponse{User: &user})
 }
 
 func (r *Router) logout(ctx *fiber.Ctx) error {
@@ -202,8 +184,6 @@ func (r *Router) writeAuthError(ctx *fiber.Ctx, err error) error {
 		return writeError(ctx, fiber.StatusUnauthorized, "invalid_credentials", "Неверный логин или пароль")
 	case errors.Is(err, authstore.ErrForbidden):
 		return writeError(ctx, fiber.StatusForbidden, "forbidden", "Действие недоступно")
-	case errors.Is(err, authstore.ErrUsernameTaken):
-		return writeError(ctx, fiber.StatusConflict, "username_taken", "Этот логин уже занят")
 	case errors.Is(err, authstore.ErrUserNotFound):
 		return writeError(ctx, fiber.StatusNotFound, "user_not_found", "Пользователь не найден")
 	default:

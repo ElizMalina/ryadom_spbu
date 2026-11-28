@@ -63,7 +63,6 @@ func (r *Router) initRoutes() {
 		r.mountAuth(v1)
 	}
 	if r.submissionsDB != nil {
-		v1.Use("/submissions", r.authRequest)
 		r.mountSubmissions(v1, r.submissionsDB)
 	}
 }

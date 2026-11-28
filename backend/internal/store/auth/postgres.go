@@ -11,7 +11,6 @@ import (
 )
 
 var (
-	ErrUsernameTaken     = errors.New("username already registered")
 	ErrUserNotFound      = errors.New("user not found")
 	ErrForbidden         = errors.New("role change forbidden")
 	ErrBootstrapConflict = errors.New("bootstrap username belongs to another account")
@@ -40,31 +39,6 @@ func (s *Store) BootstrapAdmin(ctx context.Context, username, name, passwordHash
 		return ErrBootstrapConflict
 	}
 	return nil
-}
-
-func (s *Store) Register(ctx context.Context, username, name, passwordHash string, token, previous []byte, expiresAt time.Time) (core.User, error) {
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return core.User{}, err
-	}
-	defer tx.Rollback()
-
-	user, err := scanUser(tx.QueryRowContext(ctx, `
-		INSERT INTO auth_users (username, display_name, password_hash)
-		VALUES ($1, $2, $3)
-		ON CONFLICT (username) DO NOTHING
-		RETURNING id, username, display_name, roles
-	`, username, name, passwordHash))
-	if errors.Is(err, sql.ErrNoRows) {
-		return core.User{}, ErrUsernameTaken
-	}
-	if err != nil {
-		return core.User{}, err
-	}
-	if err := insertSession(ctx, tx, user.ID, token, previous, expiresAt); err != nil {
-		return core.User{}, err
-	}
-	return user, tx.Commit()
 }
 
 func (s *Store) PasswordHash(ctx context.Context, username string) (string, string, error) {

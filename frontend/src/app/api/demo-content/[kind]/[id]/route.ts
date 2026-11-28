@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { backendAuthEnabled, backendAuthError, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
+import { backendAuthEnabled, backendAuthError, backendContentPath, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import { demoEnabled, getDemoUser } from '@/modules/auth/server/demo-auth';
 import { deleteOwnArticle, reviseOwnArticle, reviewSubmission, type Kind } from '@/modules/auth/server/demo-content';
 import { hasRole } from '@/modules/auth/model/types';
@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ki
   if (kind !== 'wall' && kind !== 'article') return NextResponse.json({ error: 'not_found' }, { status: 404 });
   if (backendAuthEnabled()) {
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return backendAuthError(404, 'not_found');
-    return forwardBackendAuth(req, `/api/v1/submissions/${kind}/${encodeURIComponent(id)}`);
+    return forwardBackendAuth(req, backendContentPath(kind, id));
   }
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
   const user = await getDemoUser();
@@ -43,7 +43,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ k
   if (kind !== 'article') return NextResponse.json({ error: 'not_found' }, { status: 404 });
   if (backendAuthEnabled()) {
     if (!/^[a-zA-Z0-9_-]{1,128}$/.test(id)) return backendAuthError(404, 'not_found');
-    return forwardBackendAuth(req, `/api/v1/submissions/${kind}/${encodeURIComponent(id)}`);
+    return forwardBackendAuth(req, backendContentPath(kind, id));
   }
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503 });
   const user = await getDemoUser();

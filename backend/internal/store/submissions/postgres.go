@@ -131,6 +131,7 @@ func (s *Store) DeleteArticle(ctx context.Context, id, userID string) error {
 	return tx.Commit()
 }
 
+// Review accepts the current pending revision when expectedRevision is zero.
 func (s *Store) Review(ctx context.Context, kind, id, reviewerID, status string, expectedRevision int) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -149,7 +150,7 @@ func (s *Store) Review(ctx context.Context, kind, id, reviewerID, status string,
 	if err != nil {
 		return err
 	}
-	if kind == "article" && item.Revision != expectedRevision {
+	if kind == "article" && expectedRevision != 0 && item.Revision != expectedRevision {
 		return ErrStaleRevision
 	}
 	if kind == "article" && status == "approved" && reviewerID == item.AuthorID {

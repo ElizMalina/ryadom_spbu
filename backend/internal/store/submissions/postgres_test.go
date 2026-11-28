@@ -99,7 +99,7 @@ func TestPostgresPublicationLifecycle(t *testing.T) {
 	if err := store.Review(ctx, "article", id, author, "approved", 1); !errors.Is(err, ErrOwnArticleReview) {
 		t.Fatalf("self-review returned %v", err)
 	}
-	if err := store.Review(ctx, "article", id, reviewer, "approved", 1); err != nil {
+	if err := store.Review(ctx, "article", id, reviewer, "approved", 0); err != nil {
 		t.Fatal(err)
 	}
 	assertPublicArticle("Первая редакция")

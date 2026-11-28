@@ -19,6 +19,7 @@ import (
 type submissionsController struct {
 	router *Router
 	store  *submissions.Store
+	kind   string
 }
 
 type submissionResponse struct {
@@ -34,12 +35,17 @@ type submissionResponse struct {
 }
 
 func (r *Router) mountSubmissions(v1 fiber.Router, db *sql.DB) {
-	controller := &submissionsController{router: r, store: submissions.New(db)}
-	group := v1.Group("/submissions")
-	group.Get("/:kind", controller.list)
-	group.Post("/:kind", controller.create)
-	group.Patch("/:kind/:id", controller.update)
-	group.Delete("/:kind/:id", controller.remove)
+	store := submissions.New(db)
+	wall := &submissionsController{router: r, store: store, kind: "wall"}
+	articles := &submissionsController{router: r, store: store, kind: "article"}
+
+	v1.Get("/wall", r.authRequest, wall.list)
+	v1.Post("/wall", r.authRequest, wall.create)
+	v1.Patch("/wall/:id", r.authRequest, wall.update)
+	v1.Get("/psychoeducation/articles", r.authRequest, articles.list)
+	v1.Post("/psychoeducation/articles", r.authRequest, articles.create)
+	v1.Patch("/psychoeducation/articles/:id", r.authRequest, articles.update)
+	v1.Delete("/psychoeducation/articles/:id", r.authRequest, articles.remove)
 }
 
 func (c *submissionsController) authorize(ctx *fiber.Ctx, role string) (*core.User, error) {
@@ -57,10 +63,7 @@ func (c *submissionsController) authorize(ctx *fiber.Ctx, role string) (*core.Us
 }
 
 func (c *submissionsController) list(ctx *fiber.Ctx) error {
-	kind := ctx.Params("kind")
-	if !validSubmissionKind(kind) {
-		return submissionNotFound(ctx)
-	}
+	kind := c.kind
 	view := ctx.Query("view")
 	if view == "" {
 		view = "queue"
@@ -112,10 +115,7 @@ func (c *submissionsController) list(ctx *fiber.Ctx) error {
 }
 
 func (c *submissionsController) create(ctx *fiber.Ctx) error {
-	kind := ctx.Params("kind")
-	if !validSubmissionKind(kind) {
-		return submissionNotFound(ctx)
-	}
+	kind := c.kind
 	role := "student"
 	if kind == "article" {
 		role = "consultant"
@@ -142,10 +142,7 @@ func (c *submissionsController) create(ctx *fiber.Ctx) error {
 }
 
 func (c *submissionsController) update(ctx *fiber.Ctx) error {
-	kind, id := ctx.Params("kind"), ctx.Params("id")
-	if !validSubmissionKind(kind) {
-		return submissionNotFound(ctx)
-	}
+	kind, id := c.kind, ctx.Params("id")
 	if !validSubmissionID(id) {
 		return writeError(ctx, fiber.StatusBadRequest, "invalid_id", "Недопустимый идентификатор")
 	}
@@ -184,8 +181,8 @@ func (c *submissionsController) update(ctx *fiber.Ctx) error {
 		return writeError(ctx, fiber.StatusBadRequest, "invalid_status", "Укажите решение: approved или rejected")
 	}
 	var revision int
-	if kind == "article" {
-		value, ok := input["revision"].(float64)
+	if rawRevision, exists := input["revision"]; kind == "article" && exists {
+		value, ok := rawRevision.(float64)
 		if !ok || value < 1 || value > math.MaxInt32 || math.Trunc(value) != value {
 			return writeError(ctx, fiber.StatusBadRequest, "invalid_revision", "Укажите версию статьи из очереди проверки")
 		}
@@ -212,9 +209,6 @@ func (c *submissionsController) changeResponse(ctx *fiber.Ctx, id, status string
 }
 
 func (c *submissionsController) remove(ctx *fiber.Ctx) error {
-	if ctx.Params("kind") != "article" {
-		return submissionNotFound(ctx)
-	}
 	id := ctx.Params("id")
 	if !validSubmissionID(id) {
 		return writeError(ctx, fiber.StatusBadRequest, "invalid_id", "Недопустимый идентификатор")
@@ -232,10 +226,6 @@ func (c *submissionsController) remove(ctx *fiber.Ctx) error {
 		return c.router.writeServiceError(ctx, err)
 	}
 	return ctx.JSON(fiber.Map{"deleted": true})
-}
-
-func validSubmissionKind(kind string) bool {
-	return kind == "wall" || kind == "article"
 }
 
 func validSubmissionID(id string) bool {

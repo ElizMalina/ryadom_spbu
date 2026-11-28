@@ -18,16 +18,17 @@ import (
 	"github.com/mshipilov5/Ryadom_spbu/backend/config"
 	"github.com/mshipilov5/Ryadom_spbu/backend/internal/app"
 	"github.com/mshipilov5/Ryadom_spbu/backend/internal/core"
+	"golang.org/x/crypto/bcrypt"
 )
+
+const testStudentPassword = "fixture-student-password"
 
 func TestAccountSessionsAndRoleChanges(t *testing.T) {
 	server := newAuthTestServer(t)
 	const session = "/api/v1/auth/session"
 	const register = "/api/v1/auth/register"
 	const users = "/api/v1/users"
-	password := "registration-test-password"
-	registration := map[string]string{"username": "  New.Student  ", "displayName": "Студент", "password": password}
-	login := map[string]string{"username": "new.student", "password": password}
+	login := map[string]string{"username": "  New.Student  ", "password": testStudentPassword}
 
 	var response struct {
 		User *core.User `json:"user"`
@@ -37,16 +38,18 @@ func TestAccountSessionsAndRoleChanges(t *testing.T) {
 		t.Fatal("guest session returned a user")
 	}
 	authRequest(t, server, "GET", users, nil, nil, 401)
-	registered := authRequest(t, server, "POST", register, registration, nil, 201)
-	decodeResponse(t, registered, &response)
+	authRequest(t, server, "POST", register, map[string]string{
+		"username": "another.student", "displayName": "Студент", "password": testStudentPassword,
+	}, nil, 404)
+	signedIn := authRequest(t, server, "POST", session, login, nil, 200)
+	decodeResponse(t, signedIn, &response)
 	if response.User == nil || response.User.Username != "new.student" || response.User.Roles == nil || len(response.User.Roles) != 0 {
-		t.Fatalf("registration returned an unexpected user: %#v", response.User)
+		t.Fatalf("sign-in returned an unexpected user: %#v", response.User)
 	}
-	token := sessionCookie(t, registered)
-	authRequest(t, server, "POST", register, registration, nil, 409)
+	token := sessionCookie(t, signedIn)
 	for _, credentials := range []map[string]string{
 		{"username": "new.student", "password": "wrong"},
-		{"username": "студент", "password": password},
+		{"username": "студент", "password": testStudentPassword},
 		{"username": "new.student", "password": ""},
 	} {
 		result := authRequest(t, server, "POST", session, credentials, nil, 401)
@@ -90,11 +93,11 @@ func TestAccountSessionsAndRoleChanges(t *testing.T) {
 	authRequest(t, server, "DELETE", session, nil, replaced, 200)
 	assertGuest(replaced)
 
-	request := httptest.NewRequest("POST", register, bytes.NewBufferString(`{"username":"blocked"}`))
+	request := httptest.NewRequest("POST", session, bytes.NewBufferString(`{"username":"blocked"}`))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Origin", "https://other-origin.example")
 	if result := executeRequest(t, server, request); result.StatusCode != 403 {
-		t.Fatalf("cross-origin registration returned %d, want 403", result.StatusCode)
+		t.Fatalf("cross-origin login returned %d, want 403", result.StatusCode)
 	}
 }
 
@@ -129,6 +132,16 @@ func newAuthTestServer(t *testing.T) *fiber.App {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = closeServer() })
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(testStudentPassword), bcrypt.MinCost)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := database.Exec(
+		"INSERT INTO "+schema+".auth_users (username, display_name, password_hash) VALUES ($1, $2, $3)",
+		"new.student", "Студент", string(passwordHash),
+	); err != nil {
+		t.Fatal(err)
+	}
 	return server
 }
 

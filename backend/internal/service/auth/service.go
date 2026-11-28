@@ -49,25 +49,6 @@ func (s *Service) BootstrapAdmin(ctx context.Context, username, password string)
 	return s.store.BootstrapAdmin(ctx, username, "Администратор", string(hash))
 }
 
-func (s *Service) Register(ctx context.Context, username, displayName, password, previous string) (core.User, string, error) {
-	username = normalizeUsername(username)
-	displayName = strings.TrimSpace(displayName)
-	if !usernamePattern.MatchString(username) || displayName == "" || utf8.RuneCountInString(displayName) > 100 ||
-		strings.ContainsRune(displayName, '\x00') || !validNewPassword(password) {
-		return core.User{}, "", ErrInvalidInput
-	}
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return core.User{}, "", err
-	}
-	token, digest, err := newToken()
-	if err != nil {
-		return core.User{}, "", err
-	}
-	user, err := s.store.Register(ctx, username, displayName, string(hash), digest, tokenHash(previous), time.Now().Add(SessionTTL))
-	return user, token, err
-}
-
 func (s *Service) Login(ctx context.Context, username, password, previous string) (core.User, string, error) {
 	username = normalizeUsername(username)
 	if !usernamePattern.MatchString(username) || password == "" || len(password) > 72 {

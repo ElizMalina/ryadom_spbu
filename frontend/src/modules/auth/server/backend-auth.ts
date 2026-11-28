@@ -27,11 +27,18 @@ function sameOriginMutation(request: NextRequest): boolean {
   }
 }
 
-type Endpoint =
-  | '/api/v1/auth/session'
-  | '/api/v1/auth/register'
-  | '/api/v1/users'
-  | `/api/v1/submissions/${'wall' | 'article'}${string}`;
+const contentPaths = {
+  wall: '/api/v1/wall',
+  article: '/api/v1/psychoeducation/articles',
+} as const;
+type ContentKind = keyof typeof contentPaths;
+type ContentPath = (typeof contentPaths)[ContentKind];
+type Endpoint = '/api/v1/auth/session' | '/api/v1/users' | ContentPath | `${ContentPath}/${string}`;
+
+export function backendContentPath(kind: ContentKind, id?: string): Endpoint {
+  const path = contentPaths[kind];
+  return id === undefined ? path : `${path}/${encodeURIComponent(id)}`;
+}
 
 export async function forwardBackendAuth(
   request: NextRequest,
