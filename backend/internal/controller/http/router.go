@@ -1,27 +1,46 @@
 package http
 
 import (
+	"database/sql"
 	"log/slog"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/mshipilov5/Ryadom_spbu/backend/internal/core"
+	authservice "github.com/mshipilov5/Ryadom_spbu/backend/internal/service/auth"
 )
 
 type Router struct {
+	auth             *authservice.Service
+	authCookieSecure bool
+	submissionsDB    *sql.DB
 	app              *fiber.App
 	educationService core.EducationService
 	log              *slog.Logger
 	corsOrigins      string
 }
 
-func NewRouter(app *fiber.App, educationService core.EducationService, corsOrigins string, log *slog.Logger) {
+type RouterOption func(*Router)
+
+func WithAuth(service *authservice.Service, secureCookie bool, db *sql.DB) RouterOption {
+	return func(r *Router) {
+		r.auth = service
+		r.authCookieSecure = secureCookie
+		r.submissionsDB = db
+	}
+}
+
+func NewRouter(app *fiber.App, educationService core.EducationService, corsOrigins string, log *slog.Logger, options ...RouterOption) {
 	router := &Router{
 		app:              app,
 		educationService: educationService,
 		log:              log,
 		corsOrigins:      corsOrigins,
+	}
+
+	for _, option := range options {
+		option(router)
 	}
 
 	router.initRequestMiddlewares()
@@ -39,6 +58,14 @@ func (r *Router) initRoutes() {
 	v1.Get("/psychoeducation/materials", r.getMaterials)
 	v1.Get("/psychoeducation/materials/:slug", r.getMaterialBySlug)
 	v1.Get("/psychoeducation/filters", r.getFilterOptions)
+
+	if r.auth != nil {
+		r.mountAuth(v1)
+	}
+	if r.submissionsDB != nil {
+		v1.Use("/submissions", r.authRequest)
+		r.mountSubmissions(v1, r.submissionsDB)
+	}
 }
 
 func (r *Router) initRequestMiddlewares() {

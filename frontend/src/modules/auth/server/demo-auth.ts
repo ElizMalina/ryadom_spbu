@@ -4,6 +4,7 @@ import path from 'node:path';
 import { cookies } from 'next/headers';
 import { isUserRole, type CurrentUser, type UserRole } from '../model/types';
 import { DEMO_USERS } from '../model/demo-accounts';
+import { backendAuthEnabled } from './backend-auth';
 
 export const DEMO_COOKIE_NAME = 'ryadom_demo_sso';
 export const DEMO_TTL_SECONDS = 60 * 60 * 8;
@@ -22,7 +23,7 @@ const DEFAULT_ROLES: Readonly<Record<string, readonly UserRole[]>> = {
 
 type RoleMap = Record<string, UserRole[]>;
 const storeFile = () => path.join(process.cwd(), '.demo-data', 'roles.json');
-export const demoEnabled = () => process.env.NODE_ENV === 'development';
+export const demoEnabled = () => process.env.NODE_ENV === 'development' && !backendAuthEnabled();
 
 async function readRoles(): Promise<RoleMap> {
   try {

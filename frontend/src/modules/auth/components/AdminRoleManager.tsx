@@ -4,9 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ROLE_LABELS, USER_ROLES, type CurrentUser, type UserRole } from '../model/types';
 import { filterUsersByNameOrLogin } from '../model/role-search';
 import { RoleGate } from './RoleGate';
+import { useAuth } from './AuthProvider';
 import { Pagination, PAGE_SIZES, usePaginatedItems } from '@/modules/ui/pagination/Pagination';
 
-export function AdminRoleManager() {
+export function AdminRoleManager({ demoMode }: { demoMode: boolean }) {
+  const { user: currentUser, refresh } = useAuth();
   const [users, setUsers] = useState<CurrentUser[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [message, setMessage] = useState('');
@@ -46,7 +48,7 @@ export function AdminRoleManager() {
     const roles = checked
       ? [...new Set([...current.roles, role])]
       : current.roles.filter(existing => existing !== role);
-    if (!roles.length) {
+    if (demoMode && !roles.length) {
       setMessage('У пользователя должна оставаться хотя бы одна роль.');
       return;
     }
@@ -64,6 +66,7 @@ export function AdminRoleManager() {
       const data: { user: CurrentUser } = await response.json();
       setUsers(all => all.map(user => user.username === username ? data.user : user));
       setMessage(`Роли пользователя ${data.user.displayName} обновлены.`);
+      if (username === currentUser?.username) await refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Ошибка.');
     } finally {
@@ -120,7 +123,7 @@ export function AdminRoleManager() {
                         <input
                           type="checkbox"
                           checked={user.roles.includes(role)}
-                          disabled={busyUser !== null || user.username === 'admin.demo'}
+                          disabled={busyUser !== null || (demoMode && user.username === 'admin.demo')}
                           onChange={event => void setRole(user.username, role, event.target.checked)}
                         />
                         <span>{ROLE_LABELS[role]}</span>

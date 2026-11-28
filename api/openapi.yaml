@@ -1,11 +1,10 @@
 openapi: 3.0.3
 info:
-  title: "Рядом — API психопросвета"
+  title: "Рядом — API"
   version: 1.0.0
   description: |
-    Публичный API каталога психопросветительных статей MVP.
-    Все endpoint доступны гостю. API возвращает только опубликованные материалы.
-    В MVP публикуются только статьи; аудио и видео добавляются после MVP.
+    API каталога статей, локальных аккаунтов и публикаций.
+    Публичный каталог доступен гостю и возвращает опубликованные статьи.
 servers:
   - url: https://api.example.org
     description: Production example
@@ -14,6 +13,10 @@ servers:
 tags:
   - name: Psychoeducation
     description: Публичный каталог психопросветительных материалов
+  - name: Auth
+    description: Локальные аккаунты, сессии и управление ролями
+  - name: Submissions
+    description: Записи стены, авторские статьи и их проверка
 paths:
   /api/v1/psychoeducation/materials:
     get:
@@ -189,8 +192,548 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
+  /api/v1/auth/session:
+    get:
+      tags: [Auth]
+      summary: Получить текущего пользователя
+      operationId: getAuthSession
+      security:
+        - {}
+        - SessionCookie: []
+      responses:
+        '200':
+          description: Текущий пользователь или null для гостя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Auth]
+      summary: Войти в локальный аккаунт
+      description: До 60 попыток в минуту для одного источника запросов.
+      operationId: createAuthSession
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthCredentials'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthSignedIn'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '429':
+          $ref: '#/components/responses/AuthRateLimit'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Auth]
+      summary: Завершить текущую сессию
+      operationId: deleteAuthSession
+      security:
+        - {}
+        - SessionCookie: []
+      responses:
+        '200':
+          description: Сессия завершена, пользователь отсутствует
+          headers:
+            Set-Cookie:
+              description: Браузер удаляет cookie ryadom_session.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSession'
+              example:
+                user: null
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      summary: Создать локальный аккаунт и войти
+      description: |
+        Новый аккаунт создаётся без назначенных ролей.
+        До 20 попыток регистрации в минуту для одного источника запросов.
+      operationId: registerUser
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistrationRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/AuthSignedIn'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '409':
+          description: Логин уже занят
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '429':
+          $ref: '#/components/responses/AuthRateLimit'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/users:
+    get:
+      tags: [Auth]
+      summary: Получить список пользователей
+      description: Доступно только с ролью admin.
+      operationId: listUsers
+      security:
+        - SessionCookie: []
+      responses:
+        '200':
+          description: Список пользователей
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [users]
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuthUser'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    patch:
+      tags: [Auth]
+      summary: Заменить роли пользователя
+      description: |
+        Доступно только с ролью admin. Для первого администратора,
+        созданного при запуске, роль admin обязательна.
+      operationId: updateUserRoles
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRolesRequest'
+      responses:
+        '200':
+          description: Пользователь с обновлёнными ролями
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserResponse'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/submissions/{kind}:
+    parameters:
+      - $ref: '#/components/parameters/SubmissionKind'
+    get:
+      tags: [Submissions]
+      summary: Получить записи стены или список материалов для работы
+      description: |
+        Без view или с view=public стена доступна гостям и содержит только
+        одобренные анонимные записи. Для статьи по умолчанию используется view=queue. Очередь стены
+        доступна moderator, очередь статей доступна reviewer. В очереди статей
+        каждая запись содержит revision. view=mine доступно consultant для
+        собственных статей.
+      operationId: listSubmissions
+      security:
+        - {}
+        - SessionCookie: []
+      parameters:
+        - name: view
+          in: query
+          schema:
+            type: string
+            enum: [public, queue, mine]
+      responses:
+        '200':
+          description: Записи стены, очередь проверки или собственные статьи
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      anyOf:
+                        - $ref: '#/components/schemas/SubmissionItem'
+                        - $ref: '#/components/schemas/PublicWallPost'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/SubmissionNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    post:
+      tags: [Submissions]
+      summary: Отправить запись на проверку
+      description: |
+        Запись на стене может создать student, статью может отправить consultant.
+        Заголовок обязателен для статьи и игнорируется для стены.
+      operationId: createSubmission
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmissionContent'
+      responses:
+        '201':
+          description: Запись создана в статусе pending
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionState'
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/SubmissionNotFound'
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/submissions/{kind}/{id}:
+    parameters:
+      - $ref: '#/components/parameters/SubmissionKind'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Submissions]
+      summary: Проверить запись или отредактировать собственную статью
+      description: |
+        moderator проверяет записи стены, reviewer проверяет статьи.
+        Рецензент не может одобрить собственную статью. Одобренная статья появляется
+        в публичном каталоге. Автор с ролью consultant может изменить свою
+        статью. После правки статья возвращается на проверку и скрывается из каталога.
+        Для одобрения или отклонения статьи передайте revision из очереди. Если
+        автор изменил статью после загрузки очереди, API возвращает 409. Обновите
+        очередь и прочитайте изменённую статью перед новым решением. Для стены
+        достаточно передать status.
+      operationId: updateSubmission
+      security:
+        - SessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: object
+                  required: [status]
+                  properties:
+                    status:
+                      type: string
+                      enum: [approved, rejected]
+                    revision:
+                      allOf:
+                        - $ref: '#/components/schemas/SubmissionRevision'
+                      description: Обязателен для решения по статье. Берётся из очереди статей.
+                - type: object
+                  required: [title, body]
+                  properties:
+                    title:
+                      type: string
+                      minLength: 1
+                      maxLength: 160
+                    body:
+                      type: string
+                      minLength: 1
+                      maxLength: 5000
+      responses:
+        '200':
+          description: Запись изменена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmissionState'
+        '400':
+          description: Некорректный запрос, в том числе отсутствующий или недопустимый revision для решения по статье
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                code: invalid_revision
+                message: Укажите версию статьи из очереди проверки
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/SubmissionNotFound'
+        '409':
+          description: Версия статьи изменилась. Обновите очередь и прочитайте статью заново.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                code: stale_revision
+                message: Статья изменилась. Откройте новую версию и проверьте её
+        '415':
+          $ref: '#/components/responses/JSONRequired'
+        '500':
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Submissions]
+      summary: Удалить собственную статью
+      description: Доступно автору с ролью consultant. Применяется только к kind=article.
+      operationId: deleteSubmission
+      security:
+        - SessionCookie: []
+      responses:
+        '200':
+          description: Статья удалена
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [deleted]
+                properties:
+                  deleted:
+                    type: boolean
+                    enum: [true]
+        '400':
+          $ref: '#/components/responses/InvalidRequest'
+        '401':
+          $ref: '#/components/responses/AuthenticationRequired'
+        '403':
+          $ref: '#/components/responses/AccessDenied'
+        '404':
+          $ref: '#/components/responses/SubmissionNotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
 components:
+  parameters:
+    SubmissionKind:
+      name: kind
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/SubmissionKind'
+  securitySchemes:
+    SessionCookie:
+      type: apiKey
+      in: cookie
+      name: ryadom_session
   schemas:
+    AuthRole:
+      type: string
+      description: Назначаемая роль. Гость представлен отсутствием сессии.
+      enum: [student, consultant, psychologist, admin, moderator, reviewer]
+
+    AuthUser:
+      type: object
+      required: [id, username, displayName, roles]
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        displayName:
+          type: string
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuthRole'
+
+    AuthSession:
+      type: object
+      required: [user]
+      properties:
+        user:
+          anyOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: object
+              nullable: true
+              enum: [null]
+
+    AuthUserResponse:
+      type: object
+      required: [user]
+      properties:
+        user:
+          $ref: '#/components/schemas/AuthUser'
+
+    AuthCredentials:
+      type: object
+      additionalProperties: false
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          description: При проверке логина пробелы по краям убираются, регистр игнорируется.
+        password:
+          type: string
+          format: password
+          minLength: 1
+          description: До 72 байт UTF-8.
+
+    RegistrationRequest:
+      type: object
+      additionalProperties: false
+      required: [username, displayName, password]
+      properties:
+        username:
+          type: string
+          description: После удаления пробелов по краям и приведения к нижнему регистру логин соответствует [a-z0-9][a-z0-9._-]{2,63}.
+          example: student.001
+        displayName:
+          type: string
+          description: От 1 до 100 символов после удаления пробелов по краям.
+        password:
+          type: string
+          format: password
+          minLength: 12
+          description: До 72 байт UTF-8.
+
+    UpdateUserRolesRequest:
+      type: object
+      additionalProperties: false
+      required: [username, roles]
+      properties:
+        username:
+          type: string
+          description: При проверке логина пробелы по краям убираются, регистр игнорируется.
+        roles:
+          type: array
+          maxItems: 6
+          description: Полный набор ролей. Пустой массив снимает все назначенные роли.
+          items:
+            $ref: '#/components/schemas/AuthRole'
+
+    SubmissionKind:
+      type: string
+      enum: [wall, article]
+
+    SubmissionContent:
+      type: object
+      required: [body]
+      properties:
+        title:
+          type: string
+          description: Для статьи от 1 до 160 символов после удаления пробелов по краям.
+        body:
+          type: string
+          minLength: 1
+          maxLength: 5000
+
+    SubmissionRevision:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 2147483647
+      description: Версия статьи. Первая версия равна 1.
+      example: 1
+
+    SubmissionState:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+
+    PublicWallPost:
+      type: object
+      required: [id, body, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        body:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    SubmissionItem:
+      allOf:
+        - $ref: '#/components/schemas/SubmissionState'
+        - $ref: '#/components/schemas/PublicWallPost'
+        - type: object
+          required: [kind]
+          properties:
+            kind:
+              $ref: '#/components/schemas/SubmissionKind'
+            revision:
+              allOf:
+                - $ref: '#/components/schemas/SubmissionRevision'
+              description: Возвращается только в очереди статей для рецензента.
+            title:
+              type: string
+            authorId:
+              type: string
+              description: Не возвращается для записей стены.
+            authorName:
+              type: string
+              description: Не возвращается для записей стены.
+
     MaterialList:
       type: object
       required: [items, total]
@@ -356,6 +899,53 @@ components:
           nullable: true
 
   responses:
+    AuthSignedIn:
+      description: Пользователь вошёл, сессия действует 8 часов
+      headers:
+        Set-Cookie:
+          description: Cookie ryadom_session с HttpOnly и SameSite=Lax. Флаг Secure включён по умолчанию.
+          schema:
+            type: string
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthUserResponse'
+    AuthRateLimit:
+      description: Превышен лимит попыток входа или регистрации
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    AuthenticationRequired:
+      description: Требуется действующая сессия
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    AccessDenied:
+      description: Недостаточно прав либо источник запроса не разрешён
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    SubmissionNotFound:
+      description: Вид материала или подходящая запись не найдены
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    JSONRequired:
+      description: Тело запроса должно иметь Content-Type application/json
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InvalidRequest:
+      description: Некорректные параметры или тело запроса
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
     InvalidQuery:
       description: Некорректный параметр поиска или фильтра
       content:

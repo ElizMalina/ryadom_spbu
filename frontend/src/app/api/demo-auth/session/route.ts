@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { backendAuthEnabled, forwardBackendAuth } from '@/modules/auth/server/backend-auth';
 import {
   authenticateDemoUser, createDemoSession, demoEnabled, DEMO_COOKIE_NAME,
   DEMO_TTL_SECONDS, getDemoUser,
@@ -8,13 +9,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 const noStore = { 'Cache-Control': 'no-store' };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  if (backendAuthEnabled()) return forwardBackendAuth(request, '/api/v1/auth/session');
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers: noStore });
   const user = await getDemoUser();
   return NextResponse.json({ user }, { headers: noStore });
 }
 
 export async function POST(request: NextRequest) {
+  if (backendAuthEnabled()) return forwardBackendAuth(request, '/api/v1/auth/session');
   if (!demoEnabled()) return NextResponse.json({ error: 'demo_disabled' }, { status: 503, headers: noStore });
   let data: unknown;
   try { data = await request.json(); } catch { return NextResponse.json({ error: 'invalid_json' }, { status: 400 }); }
@@ -33,7 +36,8 @@ export async function POST(request: NextRequest) {
   return response;
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  if (backendAuthEnabled()) return forwardBackendAuth(request, '/api/v1/auth/session');
   const response = NextResponse.json({ user: null }, { headers: noStore });
   response.cookies.set(DEMO_COOKIE_NAME, '', { httpOnly: true, sameSite: 'lax', path: '/', maxAge: 0 });
   return response;

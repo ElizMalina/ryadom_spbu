@@ -4,7 +4,7 @@ import { RoleGate } from './RoleGate';
 import { Pagination, PAGE_SIZES, usePaginatedItems } from '@/modules/ui/pagination/Pagination';
 
 type Kind = 'wall' | 'article';
-type Item = { id: string; title?: string; body: string; createdAt: string };
+type Item = { id: string; title?: string; body: string; createdAt: string; revision?: number };
 export function ReviewQueue({ kind }: { kind: Kind }) {
   const [items, setItems] = useState<Item[]>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -20,10 +20,22 @@ export function ReviewQueue({ kind }: { kind: Kind }) {
     } catch { if (!signal?.aborted) setStatus('error'); }
   }, [kind]);
   useEffect(() => { const controller = new AbortController(); void load(controller.signal); return () => controller.abort(); }, [load]);
-  const decide = async (id: string, decision: 'approved' | 'rejected') => {
+  const decide = async ({ id, revision }: Item, decision: 'approved' | 'rejected') => {
     setBusy(id); setError('');
+    const data = kind === 'article' && revision !== undefined
+      ? { status: decision, revision }
+      : { status: decision };
     try {
-      const response = await fetch(`/api/demo-content/${kind}/${encodeURIComponent(id)}`, { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: decision }) });
+      const response = await fetch(`/api/demo-content/${kind}/${encodeURIComponent(id)}`, {
+        method: 'PATCH', credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+      });
+      if (kind === 'article' && response.status === 409) {
+        setError('Статья изменилась. Проверьте новую версию перед решением.');
+        setStatus('loading');
+        await load();
+        return;
+      }
       if (!response.ok) throw new Error('Не удалось сохранить решение.');
       setItems(current => current.filter(item => item.id !== id));
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'Ошибка.'); }
@@ -38,8 +50,8 @@ export function ReviewQueue({ kind }: { kind: Kind }) {
       <small>На проверке · {new Date(item.createdAt).toLocaleDateString('ru-RU')}</small>
       <p className="staffPreserveLines">{item.body}</p>
       <div className="staffActions">
-        <button type="button" className="uiButton" disabled={busy !== null} onClick={() => void decide(item.id, 'approved')}>Одобрить</button>
-        <button type="button" className="uiButtonSecondary" disabled={busy !== null} onClick={() => void decide(item.id, 'rejected')}>Отклонить</button>
+        <button type="button" className="uiButton" disabled={busy !== null} onClick={() => void decide(item, 'approved')}>Одобрить</button>
+        <button type="button" className="uiButtonSecondary" disabled={busy !== null} onClick={() => void decide(item, 'rejected')}>Отклонить</button>
       </div>
     </article>)}</div> : <div className="staffCard"><h2>Очередь пуста</h2><p>Новых материалов на проверку пока нет.</p></div>)}
     {status === 'ready' && <Pagination {...paged} onPageChange={paged.setPage} label={kind === 'wall' ? 'очередь записей' : 'очередь статей'} />}

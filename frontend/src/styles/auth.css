@@ -50,6 +50,8 @@
 .ssoAccountChooser p{line-height:1.5;color:#5e5e5e}.ssoAccounts{display:flex;flex-wrap:wrap;gap:8px}
 .ssoAccounts button{min-height:38px;padding:8px 12px;background:#fff;border:1px solid #b6b9bf;border-radius:9px;cursor:pointer}
 .ssoAccounts button.isSelected{color:#fff;background:#9f2d20;border-color:#9f2d20}
+.ssoModeButton{padding:0;border:0;background:none;color:#8c281d;font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ssoModeButton:disabled{opacity:.7;cursor:default}
 .ssoCancel{display:inline-block;margin-top:22px;color:#8c281d;text-underline-offset:3px}
 @media(max-width:760px){.siteHeaderActions .siteLoginLink{display:flex}.siteProfileDropdown{top:calc(100% + 7px);bottom:auto}.staffRoleGrid{grid-template-columns:minmax(0,1fr)}.staffPage{padding-top:8px}.ssoBrand{margin-bottom:25px}}
 
